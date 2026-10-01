@@ -44,7 +44,21 @@ branchées sur **une base PostgreSQL unique**.
 5. Le téléphone reçoit ensuite les fiches des autres agents et services, les paiements de son service et les tarifs à jour : la recherche fonctionne hors ligne.
 6. Après une première connexion en ligne, l'agent peut se reconnecter **sans réseau**.
 
-## Installation et démarrage
+## En ligne (Render, espace « Rencesement », région Francfort, offre gratuite)
+
+| Élément | Adresse |
+|---|---|
+| Tableau de bord Mairie | https://lambanyi-mairie.onrender.com |
+| Tableau de bord Service | https://lambanyi-service.onrender.com |
+| API de l'application mobile | https://lambanyi-api-mobile.onrender.com (adresse par défaut de l'application) |
+| Base PostgreSQL | `lambanyi-db` (accès externe limité à l'adresse IP de l'administrateur) |
+
+- Code : dépôt public https://github.com/diaoune-code/recensement (sans le dossier `DOCS`). Chaque envoi sur `main` redéploie les trois services.
+- Chaque tableau de bord est un seul service : l'API Express sert aussi les pages React compilées. Configuration décrite dans `render.yaml`.
+- **Offre gratuite** : la base **expire le 31/10/2026** (30 jours, puis 14 jours de grâce) ; passer au plan payant avant pour garder les données. Les services s'endorment après 15 min sans visite (≈ 1 min au réveil).
+- Accès direct à la base depuis un nouveau poste : ajouter son adresse IP dans Render → lambanyi-db → Networking.
+
+## Installation et démarrage (en local)
 
 Prérequis : Node.js 20+, PostgreSQL (mot de passe configuré dans les fichiers `.env`), l'application **Expo Go** sur le téléphone.
 

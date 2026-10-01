@@ -82,7 +82,8 @@ async function recevoir(jeton, rapport) {
 export async function synchroniser(jeton) {
   let sante;
   try {
-    sante = await appel('/sante', { delai: 5000 });
+    // 20 s : laisse le temps à un serveur en veille de commencer à se réveiller (la synchro suivante aboutira)
+    sante = await appel('/sante', { delai: 20000 });
   } catch {
     throw new ErreurReseau('Serveur injoignable');
   }

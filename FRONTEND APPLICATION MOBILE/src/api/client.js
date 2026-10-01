@@ -5,10 +5,17 @@ import { ecrireMeta, lireMeta } from '../db/base';
 export class ErreurReseau extends Error {}
 export class ErreurSession extends Error {}
 
-// Adresse par défaut : l'ordinateur qui sert l'application en développement (même machine que les backends)
+// API mobile en ligne (Render). Modifiable dans l'écran « Serveur » de l'application.
+export const SERVEUR_EN_LIGNE = 'https://lambanyi-api-mobile.onrender.com';
+
+// Adresse par défaut : l'API en ligne. Pour travailler avec les serveurs d'un ordinateur du réseau local,
+// lancer Expo avec EXPO_PUBLIC_SERVEUR=local : l'adresse de cet ordinateur est alors utilisée (port 4001).
 function serveurParDefaut() {
-  const hote = Constants.expoConfig?.hostUri?.split(':')[0];
-  return hote ? `http://${hote}:4001` : 'http://192.168.1.10:4001';
+  if (process.env.EXPO_PUBLIC_SERVEUR === 'local') {
+    const hote = Constants.expoConfig?.hostUri?.split(':')[0];
+    if (hote) return `http://${hote}:4001`;
+  }
+  return SERVEUR_EN_LIGNE;
 }
 
 export async function lireServeur() {
@@ -49,7 +56,7 @@ export async function appel(chemin, { methode = 'GET', corps, jeton, delai = 200
 // Vrai si le serveur répond réellement (le Wi-Fi ou la 3G peuvent être actifs sans accès au serveur)
 export async function serveurJoignable(serveur) {
   try {
-    await appel('/sante', { delai: 5000, serveur });
+    await appel('/sante', { delai: 60000, serveur }); // un serveur en veille peut mettre une minute à répondre
     return true;
   } catch {
     return false;

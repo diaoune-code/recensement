@@ -26,6 +26,10 @@ There is no test suite or linter configured. Verification so far: `vite build` f
 
 `parametres.base_id` is regenerated on every reset; the mobile compares it (in `/api/sante` and the login response) and wipes its local SQLite copy when it changes. Backends return 401 (not 403) when the token's user no longer exists, so clients go back to the login screen.
 
+## Deployment (Render)
+
+Deployed on Render (workspace "Rencesement", Frankfurt, free plan) from the public repo `github.com/diaoune-code/recensement` (branch `main`, auto-deploy). `DOCS/` is git-ignored and must never be pushed. Services: `lambanyi-mairie`, `lambanyi-service` (each Express backend also serves its built React `dist/`, so the web app and API share one origin), `lambanyi-api-mobile`, plus Postgres `lambanyi-db` (free tier, expires 2026-10-31). `render.yaml` documents the setup. Backends read `DATABASE_URL` when set (SSL for external Render hosts), otherwise the local `PG*` variables. The mobile app defaults to `https://lambanyi-api-mobile.onrender.com`; run Expo with `EXPO_PUBLIC_SERVEUR=local` to target a LAN machine instead. The production database is not the local one: they diverged after the initial copy.
+
 ## Architecture
 
 - **One PostgreSQL database shared by three backends.** No backend calls another; the apps are connected only through the shared tables. Each backend has its own JWT secret and only accepts one role (`AGENT`, `MAIRIE`, `CHEF_SERVICE` in `utilisateurs.role`), so tokens are not interchangeable.

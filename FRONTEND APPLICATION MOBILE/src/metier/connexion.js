@@ -14,7 +14,8 @@ export async function connecterAgent(identifiant, motDePasse) {
   const precedente = await lireMeta('session');
   let r;
   try {
-    r = await appel('/auth/login', { methode: 'POST', corps: { identifiant: ident, mot_de_passe: motDePasse } });
+    // Délai long : un serveur gratuit en veille met environ une minute à se réveiller
+    r = await appel('/auth/login', { methode: 'POST', corps: { identifiant: ident, mot_de_passe: motDePasse }, delai: 90000 });
   } catch (e) {
     if (!(e instanceof ErreurReseau)) throw e;
     // Pas de réseau : connexion hors ligne si cet agent s'est déjà connecté sur ce téléphone
