@@ -1,0 +1,24 @@
+# Dépendances et fichiers générés
+node_modules/
+dist/
+.expo/
+.expo-shared/
+web-build/
+android/
+ios/
+*.log
+.DS_Store
+Thumbs.db
+
+# Secrets : mots de passe PostgreSQL, clés JWT (les modèles .env.example restent versionnés)
+.env
+.env.*
+!.env.example
+
+# Réglages locaux d'outils
+.claude/settings.local.json
+.idea/
+.vscode/
+
+# Documents internes de la commune : jamais publiés
+DOCS/

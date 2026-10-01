@@ -1,0 +1,1109 @@
+[
+  {
+    "code": "71",
+    "libelle": "RECETTES FISCALES",
+    "niveau": "chapitre",
+    "parent_code": null,
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 6782683528
+  },
+  {
+    "code": "710",
+    "libelle": "Impôts directs et taxes assimilées",
+    "niveau": "article",
+    "parent_code": "71",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 6782683528
+  },
+  {
+    "code": "7100",
+    "libelle": "Contribution des patentes",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 6782683528
+  },
+  {
+    "code": "71001",
+    "libelle": "Contribution des patentes, personnes morales",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7100",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "71002",
+    "libelle": "Contribution des patentes, personnes physiques",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7100",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 211400000
+  },
+  {
+    "code": "71003",
+    "libelle": "Quotte part sur les marchés de TP et de génie civil (patente proportionnelle)",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7100",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 1148983528
+  },
+  {
+    "code": "7101",
+    "libelle": "Contribution des Licences",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 10800000
+  },
+  {
+    "code": "7102",
+    "libelle": "Contribution Foncière Unique (CFU)",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": null,
+    "prevision_2025": 3000000000
+  },
+  {
+    "code": "71020",
+    "libelle": "Contribution Foncière Unique (CFU), personne morale",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7102",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": null
+  },
+  {
+    "code": "71021",
+    "libelle": "Contribution Foncière Unique (CFU), personne physique",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7102",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 3000000000
+  },
+  {
+    "code": "7103",
+    "libelle": "Taxe Professionnelle Unique",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 2411500000
+  },
+  {
+    "code": "7104",
+    "libelle": "Taxe sur les armes à feu",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7105",
+    "libelle": "Taxe sur les biens de mains mortes",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7106",
+    "libelle": "Taxe Unique sur les Véhicules (TUV)",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7107",
+    "libelle": "Recettes des exercices antérieurs",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7108",
+    "libelle": "Autres recettes fiscales",
+    "niveau": "paragraphe",
+    "parent_code": "710",
+    "service_code": 1,
+    "service_indique": "Service des impots",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72",
+    "libelle": "RECETTES NON FISCALES",
+    "niveau": "chapitre",
+    "parent_code": null,
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 4068100000
+  },
+  {
+    "code": "720",
+    "libelle": "Taxes rémunératoires",
+    "niveau": "article",
+    "parent_code": "72",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 4068100000
+  },
+  {
+    "code": "7200",
+    "libelle": "Taxes d'état civil, notariales ou de greffe",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 103100000
+  },
+  {
+    "code": "72000",
+    "libelle": "Acte de naissance",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 10000000
+  },
+  {
+    "code": "72001",
+    "libelle": "Actes de mariage",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 80000000
+  },
+  {
+    "code": "72002",
+    "libelle": "Actes de décès",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 1000000
+  },
+  {
+    "code": "72003",
+    "libelle": "Délivrance des copiés d'état civil conformes à l'original",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72004",
+    "libelle": "Livret de famille",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72005",
+    "libelle": "Actes de transcription",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 12100000
+  },
+  {
+    "code": "72006",
+    "libelle": "Certificat de résidence",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72007",
+    "libelle": "Certificat de vie collective",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72008",
+    "libelle": "Certificat de célibat",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": 2,
+    "service_indique": "Etat civil",
+    "prevision_2025": 0
+  },
+  {
+    "code": "72009",
+    "libelle": "Actes notariés ou de greffe (donations, cessions, mutations)",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7200",
+    "service_code": null,
+    "service_indique": "Maire, Chef Quartier et Notaire",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7201",
+    "libelle": "Taxes d'abattage",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 3,
+    "service_indique": "Service elevage",
+    "prevision_2025": 30000000
+  },
+  {
+    "code": "7202",
+    "libelle": "Taxe de publicité",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 4,
+    "service_indique": "OGP",
+    "prevision_2025": 25000000
+  },
+  {
+    "code": "7203",
+    "libelle": "Taxe d'hygiène et de salubrité publique",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 5,
+    "service_indique": "Hygiene et Salubrite",
+    "prevision_2025": 250000000
+  },
+  {
+    "code": "7204",
+    "libelle": "Taxe de conditionnement et de contrôle de qualité",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 6,
+    "service_indique": "Service Qualite",
+    "prevision_2025": 25000000
+  },
+  {
+    "code": "7205",
+    "libelle": "Taxe de transferts",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": null
+  },
+  {
+    "code": "72051",
+    "libelle": "Taxe de transfert de produits",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7205",
+    "service_code": 3,
+    "service_indique": null,
+    "prevision_2025": 0
+  },
+  {
+    "code": "72052",
+    "libelle": "Taxe de transfert du cheptel",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7205",
+    "service_code": 3,
+    "service_indique": "Elevage",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7206",
+    "libelle": "Taxe d'équipement",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 3500000000
+  },
+  {
+    "code": "72061",
+    "libelle": "Taxe sur les nouvelles constructions",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7206",
+    "service_code": 7,
+    "service_indique": "Services cadastres",
+    "prevision_2025": 2500000000
+  },
+  {
+    "code": "72062",
+    "libelle": "Taxe sur les agrandissements et agencements",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7206",
+    "service_code": 7,
+    "service_indique": "Services cadastres",
+    "prevision_2025": 1000000000
+  },
+  {
+    "code": "7207",
+    "libelle": "Taxe sur les spectacles et réjouissances populaires",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 8,
+    "service_indique": "Service Jeuness",
+    "prevision_2025": 25000000
+  },
+  {
+    "code": "7208",
+    "libelle": "Taxes de pêche artisanale et traditionnelle",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": 9,
+    "service_indique": "Service Peche",
+    "prevision_2025": 15000000
+  },
+  {
+    "code": "7209",
+    "libelle": "Autres taxes de rémunérations et diverses",
+    "niveau": "paragraphe",
+    "parent_code": "720",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 5000000
+  },
+  {
+    "code": "721",
+    "libelle": "Taxe sur les engins",
+    "niveau": "article",
+    "parent_code": "72",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 85000000
+  },
+  {
+    "code": "7210",
+    "libelle": "Taxe sur les embarcations à moteurs",
+    "niveau": "paragraphe",
+    "parent_code": "721",
+    "service_code": 10,
+    "service_indique": "Services Transport",
+    "prevision_2025": 15000000
+  },
+  {
+    "code": "7211",
+    "libelle": "Taxe sur les charrettes, tricycles",
+    "niveau": "paragraphe",
+    "parent_code": "721",
+    "service_code": 10,
+    "service_indique": "Services Transport",
+    "prevision_2025": 70000000
+  },
+  {
+    "code": "7218",
+    "libelle": "Taxe sur les autres engins",
+    "niveau": "paragraphe",
+    "parent_code": "721",
+    "service_code": 10,
+    "service_indique": "Services Transport",
+    "prevision_2025": 0
+  },
+  {
+    "code": "728",
+    "libelle": "Autres recettes non fiscales",
+    "niveau": "article",
+    "parent_code": "72",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 5000000
+  },
+  {
+    "code": "73",
+    "libelle": "DROITS ET REDEVANCES",
+    "niveau": "chapitre",
+    "parent_code": null,
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 1180838119
+  },
+  {
+    "code": "730",
+    "libelle": "Droits du domaine",
+    "niveau": "article",
+    "parent_code": "73",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 406000000
+  },
+  {
+    "code": "7300",
+    "libelle": "Droits de place de marché",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 200000000
+  },
+  {
+    "code": "7301",
+    "libelle": "Droits de location de kiosques et stands",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 150000000
+  },
+  {
+    "code": "7302",
+    "libelle": "Droits de stationnement du bétail",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": 3,
+    "service_indique": "Elevage",
+    "prevision_2025": 6000000
+  },
+  {
+    "code": "7303",
+    "libelle": "Droits de stationnement de véhicules à moteur",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": 10,
+    "service_indique": "Services Transport",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7304",
+    "libelle": "Droits et produits de fourrière",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": null,
+    "service_indique": "Police routier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7305",
+    "libelle": "Droits d'exploitation des sites touristiques",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": 12,
+    "service_indique": "Services Hoteleries Tourism",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7306",
+    "libelle": "Droits d'exploitation des eaux superficiaires et souterraines",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": null,
+    "service_indique": "SEG/Control Qualite/Mine et Geologie",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7308",
+    "libelle": "Autres droits du domaine",
+    "niveau": "paragraphe",
+    "parent_code": "730",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 50000000
+  },
+  {
+    "code": "731",
+    "libelle": "Redevances du domaine",
+    "niveau": "article",
+    "parent_code": "73",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 583338119
+  },
+  {
+    "code": "7310",
+    "libelle": "Redevance d'exploitation des substances de carrière",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 13,
+    "service_indique": "Mine et Geologie",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7311",
+    "libelle": "Redevance d'exploitation artisanale des mines",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 13,
+    "service_indique": "Mine et Geologie",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7312",
+    "libelle": "Redevance forestière",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 14,
+    "service_indique": "Service Environment",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7313",
+    "libelle": "Redevance d'occupation privative du domaine public",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 7,
+    "service_indique": "Services Habitat et Cadastre",
+    "prevision_2025": 508338119
+  },
+  {
+    "code": "7314",
+    "libelle": "Redevance topographique",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 7,
+    "service_indique": "Services cadastres",
+    "prevision_2025": 50000000
+  },
+  {
+    "code": "7315",
+    "libelle": "Redevances environnementales",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 14,
+    "service_indique": "Services Environment",
+    "prevision_2025": 25000000
+  },
+  {
+    "code": "7316",
+    "libelle": "Redevance d'inhumation",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 15,
+    "service_indique": "Services Leauge Islamic Communal",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7317",
+    "libelle": "Redevance d'exploitation des sites touristiques",
+    "niveau": "paragraphe",
+    "parent_code": "731",
+    "service_code": 12,
+    "service_indique": "Services Hoteleries Tourism",
+    "prevision_2025": 0
+  },
+  {
+    "code": "732",
+    "libelle": "Autres droits et redevances",
+    "niveau": "article",
+    "parent_code": "73",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 191500000
+  },
+  {
+    "code": "7320",
+    "libelle": "Licence de pêche artisanale et traditionnelle",
+    "niveau": "paragraphe",
+    "parent_code": "732",
+    "service_code": 9,
+    "service_indique": "Services Peche",
+    "prevision_2025": 6500000
+  },
+  {
+    "code": "7321",
+    "libelle": "Redevance sur pêche artisanales et traditionnelles",
+    "niveau": "paragraphe",
+    "parent_code": "732",
+    "service_code": 9,
+    "service_indique": "Services Peche",
+    "prevision_2025": 70000000
+  },
+  {
+    "code": "7322",
+    "libelle": "Redevance sur permis de construire",
+    "niveau": "paragraphe",
+    "parent_code": "732",
+    "service_code": 7,
+    "service_indique": "Services cadastres",
+    "prevision_2025": 100000000
+  },
+  {
+    "code": "7323",
+    "libelle": "Droit d'enregistrement pour l'exercice des activités professionnelles",
+    "niveau": "paragraphe",
+    "parent_code": "732",
+    "service_code": null,
+    "service_indique": "Direction micro realisation",
+    "prevision_2025": 15000000
+  },
+  {
+    "code": "7324",
+    "libelle": "Droits d'inscription aux concours de recrutement",
+    "niveau": "paragraphe",
+    "parent_code": "732",
+    "service_code": 16,
+    "service_indique": "DRH",
+    "prevision_2025": 0
+  },
+  {
+    "code": "74",
+    "libelle": "PRODUITS D'EXPLOITATION DU PATRIMOINE",
+    "niveau": "chapitre",
+    "parent_code": null,
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 6950000
+  },
+  {
+    "code": "740",
+    "libelle": "Produits d'exploitation",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 6950000
+  },
+  {
+    "code": "7400",
+    "libelle": "Cotisations des usagers des services",
+    "niveau": "paragraphe",
+    "parent_code": "740",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 0
+  },
+  {
+    "code": "74001",
+    "libelle": "Revenu des latrines publiques",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7400",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 4950000
+  },
+  {
+    "code": "74002",
+    "libelle": "Revenu des bornes fontaines",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7400",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": null
+  },
+  {
+    "code": "74003",
+    "libelle": "Revenu des lavoirs",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7400",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7401",
+    "libelle": "Location des meubles, immeubles et des terrains",
+    "niveau": "paragraphe",
+    "parent_code": "740",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 2000000
+  },
+  {
+    "code": "7402",
+    "libelle": "Redevance des abattoirs",
+    "niveau": "paragraphe",
+    "parent_code": "740",
+    "service_code": 3,
+    "service_indique": "Elevage",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7403",
+    "libelle": "Autres produits d'exploitations",
+    "niveau": "paragraphe",
+    "parent_code": "740",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 0
+  },
+  {
+    "code": "750",
+    "libelle": "Produits des services concédés",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 329853000
+  },
+  {
+    "code": "7501",
+    "libelle": "Marchés",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 72000000
+  },
+  {
+    "code": "7502",
+    "libelle": "Gare-routière",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 10,
+    "service_indique": "Services Transport",
+    "prevision_2025": 90000000
+  },
+  {
+    "code": "7503",
+    "libelle": "Parking et aires de stationnement",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 145000000
+  },
+  {
+    "code": "7504",
+    "libelle": "Abattoirs",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 3,
+    "service_indique": "Elevage",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7505",
+    "libelle": "Boucheries",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 3,
+    "service_indique": "Elevage",
+    "prevision_2025": 540000
+  },
+  {
+    "code": "7506",
+    "libelle": "Produits des régies",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7507",
+    "libelle": "Produits des services à comptabilité distincte",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7508",
+    "libelle": "Autres produits des services concédés",
+    "niveau": "paragraphe",
+    "parent_code": "750",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 22313000
+  },
+  {
+    "code": "751",
+    "libelle": "Produits financiers",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 0
+  },
+  {
+    "code": "7510",
+    "libelle": "Intérêts des prêts et créances",
+    "niveau": "paragraphe",
+    "parent_code": "751",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7511",
+    "libelle": "Revenus des placements à terme",
+    "niveau": "paragraphe",
+    "parent_code": "751",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7512",
+    "libelle": "Revenus du placement des valeur de portefeuille",
+    "niveau": "paragraphe",
+    "parent_code": "751",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7518",
+    "libelle": "Autres produits financiers",
+    "niveau": "paragraphe",
+    "parent_code": "751",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "760",
+    "libelle": "Dotations de fonctionnement",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": null
+  },
+  {
+    "code": "7600",
+    "libelle": "Dotations de fonctionnement de l'Etat",
+    "niveau": "paragraphe",
+    "parent_code": "760",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "761",
+    "libelle": "Subventions reçues",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": null
+  },
+  {
+    "code": "7610",
+    "libelle": "Subventions spécifiques",
+    "niveau": "paragraphe",
+    "parent_code": "761",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7611",
+    "libelle": "Subvention de fonctionnement de l'Etat",
+    "niveau": "paragraphe",
+    "parent_code": "761",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7612",
+    "libelle": "Subvention d'appui à la tutelle",
+    "niveau": "paragraphe",
+    "parent_code": "761",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7618",
+    "libelle": "Autres subventions",
+    "niveau": "paragraphe",
+    "parent_code": "761",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "762",
+    "libelle": "Ristournes reçues",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": null
+  },
+  {
+    "code": "7620",
+    "libelle": "Ristournes reçues de l'Etat",
+    "niveau": "paragraphe",
+    "parent_code": "762",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7621",
+    "libelle": "Ristournes reçues de la tutelle",
+    "niveau": "paragraphe",
+    "parent_code": "762",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7628",
+    "libelle": "Autres ristournes reçues",
+    "niveau": "paragraphe",
+    "parent_code": "762",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "770",
+    "libelle": "Produits exceptionnels",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 25950000
+  },
+  {
+    "code": "7700",
+    "libelle": "Recettes en atténuation sur dépenses",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7701",
+    "libelle": "Mandats annulés ou atteints par la déchéance quadriennale",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7702",
+    "libelle": "Amendes et pénalités reçues",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 17,
+    "service_indique": "Garde communal",
+    "prevision_2025": 23000000
+  },
+  {
+    "code": "77021",
+    "libelle": "Amendes de condamnation civile reçues",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7702",
+    "service_code": 17,
+    "service_indique": "Garde communal",
+    "prevision_2025": 0
+  },
+  {
+    "code": "77022",
+    "libelle": "Pénalités de retard perçues sur les marchés",
+    "niveau": "sous_paragraphe",
+    "parent_code": "7702",
+    "service_code": 17,
+    "service_indique": "Garde communal",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7703",
+    "libelle": "Règlement de créances déjà admises en non-valeur",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7704",
+    "libelle": "Ventes aux enchères publiques d'éléments du patrimoine de la CL",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7708",
+    "libelle": "Autres produits exceptionnels",
+    "niveau": "paragraphe",
+    "parent_code": "770",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 2950000
+  },
+  {
+    "code": "771",
+    "libelle": "Produits antérieurs",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 1635902754
+  },
+  {
+    "code": "7710",
+    "libelle": "Excédent de fonctionnement reporté",
+    "niveau": "paragraphe",
+    "parent_code": "771",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 1635902754
+  },
+  {
+    "code": "7711",
+    "libelle": "Reste à recouvrer sur exercices antérieurs",
+    "niveau": "paragraphe",
+    "parent_code": "771",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7718",
+    "libelle": "Autres produits antérieurs",
+    "niveau": "paragraphe",
+    "parent_code": "771",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "772",
+    "libelle": "Produits divers",
+    "niveau": "article",
+    "parent_code": "74",
+    "service_code": null,
+    "service_indique": null,
+    "prevision_2025": 100000000
+  },
+  {
+    "code": "7720",
+    "libelle": "Produits de ventes des cahiers de charges d'appels d'offre",
+    "niveau": "paragraphe",
+    "parent_code": "772",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7721",
+    "libelle": "Contributions volontaires reçues d'autres CL",
+    "niveau": "paragraphe",
+    "parent_code": "772",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 0
+  },
+  {
+    "code": "7728",
+    "libelle": "Autres produits divers (précomptes de 10% sur les achats locaux)",
+    "niveau": "paragraphe",
+    "parent_code": "772",
+    "service_code": 11,
+    "service_indique": "Pool Financier",
+    "prevision_2025": 100000000
+  }
+]

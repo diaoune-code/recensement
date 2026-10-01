@@ -1,0 +1,62 @@
+# Déploiement Render : base PostgreSQL + tableaux de bord Mairie et Service (+ API mobile).
+# Chaque tableau de bord est un seul service web : l'API Express sert aussi les pages React compilées.
+databases:
+  - name: lambanyi-db
+    databaseName: lambanyi_db
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: lambanyi-mairie
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd "BACKEND MAIRIE" && npm ci && cd "../FRONTEND MAIRIE" && npm ci && npm run build
+    startCommand: node "BACKEND MAIRIE/src/server.js"
+    healthCheckPath: /api/sante
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: lambanyi-db, property: connectionString }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_DUREE
+        value: 12h
+      - key: NODE_VERSION
+        value: "22"
+
+  - type: web
+    name: lambanyi-service
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd "BACKEND SERVICE" && npm ci && cd "../FRONTEND SERVICE" && npm ci && npm run build
+    startCommand: node "BACKEND SERVICE/src/server.js"
+    healthCheckPath: /api/sante
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: lambanyi-db, property: connectionString }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_DUREE
+        value: 12h
+      - key: NODE_VERSION
+        value: "22"
+
+  - type: web
+    name: lambanyi-api-mobile
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: cd "BACKEND APPLICATION MOBILE" && npm ci
+    startCommand: node "BACKEND APPLICATION MOBILE/src/server.js"
+    healthCheckPath: /api/sante
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: lambanyi-db, property: connectionString }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_DUREE
+        value: 30d
+      - key: NODE_VERSION
+        value: "22"
