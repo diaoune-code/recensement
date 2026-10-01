@@ -53,7 +53,9 @@ branchées sur **une base PostgreSQL unique**.
 | API de l'application mobile | https://lambanyi-api-mobile.onrender.com (adresse par défaut de l'application) |
 | Base PostgreSQL | `lambanyi-db` (accès externe limité à l'adresse IP de l'administrateur) |
 
-- Code : dépôt public https://github.com/diaoune-code/recensement (sans le dossier `DOCS`). Chaque envoi sur `main` redéploie les trois services.
+- Code : dépôt public https://github.com/diaoune-code/recensement (sans le dossier `DOCS`).
+- **Mise à jour** : après un envoi sur `main`, redéployer chaque service dans Render (service → *Manual Deploy* → *Deploy latest commit*).
+  Le déploiement automatique ne fonctionne que si le compte GitHub est relié à Render (Account Settings → Git).
 - Chaque tableau de bord est un seul service : l'API Express sert aussi les pages React compilées. Configuration décrite dans `render.yaml`.
 - **Offre gratuite** : la base **expire le 31/10/2026** (30 jours, puis 14 jours de grâce) ; passer au plan payant avant pour garder les données. Les services s'endorment après 15 min sans visite (≈ 1 min au réveil).
 - Accès direct à la base depuis un nouveau poste : ajouter son adresse IP dans Render → lambanyi-db → Networking.
