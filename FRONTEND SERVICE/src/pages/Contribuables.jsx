@@ -61,7 +61,8 @@ function FicheContribuable({ id, onFermer }) {
   const joindre = (...v) => v.filter((x) => x !== null && x !== undefined && x !== '').join(' — ') || null;
   // Uniquement les champs de la « Fiche de collecte indiquée par le service de collecte », dans son ordre
   const lignes = c ? [
-    ['Nom', c.nom], ['Prénom', c.prenoms], ['Quartier / Marché', joindre(c.quartier, c.nom_marche)], ['Secteur', c.secteur],
+    ['Type de contribuable', c.type_contribuable === 'PERSONNE_PHYSIQUE' ? 'Personne physique' : 'Personne morale (entreprise)'],
+    ['Nom', c.nom], ['Prénom', c.type_contribuable === 'PERSONNE_PHYSIQUE' ? c.prenoms : null], ['Quartier / Marché', joindre(c.quartier, c.nom_marche)], ['Secteur', c.secteur],
     ['Rue / Emprise', c.rue], ['N° de concession / Boutique / Magasin / Kiosque', c.numero_porte],
     ['Type d\'habitat', c.type_habitat], ['Nombre d\'étages', c.nb_etages],
     ['Activité : formelle ou informelle (F / NF)', libelles[c.statut_fiscal]], ['Numéro de téléphone', c.telephone],

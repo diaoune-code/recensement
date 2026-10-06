@@ -54,6 +54,7 @@ export default function FicheContribuableEcran({ navigation, route }) {
         </View>
         {c.etat_synchro === 'ERREUR' && <Message type="erreur" texte={`Refusé par le serveur : ${c.erreur_synchro}`} />}
         <Text style={[styles.titreSection, { marginTop: 4 }]}>Identification et localisation</Text>
+        <LigneInfo cle="Type de contribuable" valeur={c.type_contribuable === 'PERSONNE_PHYSIQUE' ? 'Personne physique' : 'Personne morale (entreprise)'} />
         <LigneInfo cle="Quartier / Marché" valeur={[c.quartier, c.nom_marche].filter(Boolean).join(' — ')} />
         <LigneInfo cle="Secteur" valeur={c.secteur} />
         <LigneInfo cle="Rue / Emprise" valeur={c.rue} />

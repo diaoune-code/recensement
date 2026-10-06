@@ -17,7 +17,8 @@ const taxesConcernees = (c) => Object.values(c.complements || {}).flatMap((x) =>
 // Uniquement les champs de la « Fiche de collecte indiquée par le service de collecte », dans son ordre
 const RUBRIQUES = [
   { titre: 'Identification et localisation', champs: [
-    ['Nom', (c) => c.nom], ['Prénom', (c) => c.prenoms], ['Quartier / Marché', (c) => joindre(c.quartier, c.nom_marche)],
+    ['Type de contribuable', (c) => (c.type_contribuable === 'PERSONNE_PHYSIQUE' ? 'Personne physique' : 'Personne morale (entreprise)')],
+    ['Nom', (c) => c.nom], ['Prénom', (c) => (c.type_contribuable === 'PERSONNE_PHYSIQUE' ? c.prenoms : null)], ['Quartier / Marché', (c) => joindre(c.quartier, c.nom_marche)],
     ['Secteur', (c) => c.secteur], ['Rue / Emprise', (c) => c.rue],
     ['N° de concession / Boutique / Magasin / Kiosque', (c) => c.numero_porte],
     ['Type d\'habitat', (c) => c.type_habitat], ['Nombre d\'étages', (c) => c.nb_etages],

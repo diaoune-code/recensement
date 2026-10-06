@@ -28,3 +28,6 @@ PRESENTATION/
 
 # Comptes rendus et documents de travail déposés à la racine
 /*.pdf
+
+# Sauvegardes de bases (données personnelles)
+SAUVEGARDES/

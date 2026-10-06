@@ -10,7 +10,12 @@ import { Bouton, Carte, Champ, Ecran, ListeDeroulante, Message, TitreSection } f
 import { nomComplet } from '../metier/calcul';
 import { couleurs, styles } from '../theme';
 
-const ACTIVITE_F_NF = [{ valeur: 'FORMEL', libelle: 'Formelle (F)' }, { valeur: 'INFORMEL', libelle: 'Informelle (NF)' }];
+// Deux types de contribuable seulement
+const TYPES_CONTRIBUABLE = [
+  { valeur: 'PERSONNE_PHYSIQUE', libelle: 'Personne physique' },
+  { valeur: 'PERSONNE_MORALE', libelle: 'Personne morale (entreprise)' },
+];
+const ACTIVITE_F_NF =[{ valeur: 'FORMEL', libelle: 'Formelle (F)' }, { valeur: 'INFORMEL', libelle: 'Informelle (NF)' }];
 const HABITATS = ['Villa', 'Immeuble'];
 const ACTIVITES = ['Commerce de détail', 'Commerce de gros', 'Restauration / débit de boissons', 'Artisanat', 'Coiffure / esthétique',
   'Réparation / maintenance', 'Transport', 'Services', 'Hébergement', 'Agriculture / élevage', 'Autre'];
@@ -65,7 +70,8 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
   async function enregistrer() {
     setErreur(null);
-    if (!f.nom?.trim()) { setErreur('Le nom est obligatoire.'); return; }
+    const estEntreprise = f.type_contribuable && f.type_contribuable !== 'PERSONNE_PHYSIQUE';
+    if (!f.nom?.trim()) { setErreur(estEntreprise ? 'Le nom de l\'entreprise est obligatoire.' : 'Le nom est obligatoire.'); return; }
     if (!f.quartier) { setErreur('Le quartier est obligatoire.'); return; }
     if (f.telephone && !/^\+?\d{8,15}$/.test(f.telephone.replace(/\s/g, ''))) { setErreur('Numéro de téléphone invalide.'); return; }
     if (!f.consentement) { setErreur('Indiquez le consentement du contribuable (rubrique Pièces, consentement et contrôle qualité).'); return; }
@@ -75,7 +81,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
       // Contrôle anti-doublon sur le téléphone : même téléphone, ou même nom et prénom dans le même quartier
       if (!id) {
         const memes = await doublonsProbables({
-          telephone: f.telephone?.replace(/\s/g, '') || null, nom: f.nom.trim(), prenoms: f.prenoms, quartier: f.quartier,
+          telephone: f.telephone?.replace(/\s/g, '') || null, nom: f.nom.trim(), prenoms: estEntreprise ? null : f.prenoms, quartier: f.quartier,
         });
         if (memes.length) {
           const continuer = await new Promise((resoudre) => Alert.alert(
@@ -91,7 +97,11 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
       const gps = position.current;
       const saisie = {
         ...f,
+        type_contribuable: estEntreprise ? 'PERSONNE_MORALE' : 'PERSONNE_PHYSIQUE',
         nom: f.nom.trim().toUpperCase(),
+        // Personne morale : le nom saisi est la raison sociale, sans prénom
+        prenoms: estEntreprise ? null : f.prenoms,
+        raison_sociale: estEntreprise ? f.nom.trim().toUpperCase() : null,
         telephone: f.telephone?.replace(/\s/g, '') || null,
         nb_etages: f.type_habitat === 'Immeuble' ? nombreOuNull(f.nb_etages) : null,
         dernier_paiement_montant: nombreOuNull(f.dernier_paiement_montant),
@@ -114,6 +124,8 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
     }
   }
 
+  // Anciennes fiches (association, établissement…) : traitées comme des personnes morales
+  const entreprise = f.type_contribuable && f.type_contribuable !== 'PERSONNE_PHYSIQUE';
   const quartiers = (config?.quartiers || []).map((q) => q.nom);
   const valeurTexte = (v) => (v === null || v === undefined ? '' : String(v));
   const taxesService = (config?.taches || []).map((t) => ({ valeur: t.id, libelle: t.libelle }));
@@ -123,8 +135,16 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
       <Ecran>
         <TitreSection>Identification et localisation</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Champ libelle="Nom" obligatoire autoCapitalize="characters" value={valeurTexte(f.nom)} onChangeText={maj('nom')} />
-          <Champ libelle="Prénom" value={valeurTexte(f.prenoms)} onChangeText={maj('prenoms')} />
+          <ListeDeroulante libelle="Type de contribuable" obligatoire options={TYPES_CONTRIBUABLE} valeur={entreprise ? 'PERSONNE_MORALE' : 'PERSONNE_PHYSIQUE'}
+            onChange={(v) => setF((x) => ({ ...x, type_contribuable: v }))} />
+          {entreprise ? (
+            <Champ libelle="Nom de l'entreprise (raison sociale)" obligatoire autoCapitalize="characters" value={valeurTexte(f.nom)} onChangeText={maj('nom')} />
+          ) : (
+            <>
+              <Champ libelle="Nom" obligatoire autoCapitalize="characters" value={valeurTexte(f.nom)} onChangeText={maj('nom')} />
+              <Champ libelle="Prénom" value={valeurTexte(f.prenoms)} onChangeText={maj('prenoms')} />
+            </>
+          )}
           <View style={{ gap: 6 }}>
             <ListeDeroulante libelle="Quartier / Marché" obligatoire options={quartiers} valeur={f.quartier} onChange={maj('quartier')} placeholder="Choisir le quartier…" />
             <Champ libelle="" placeholder="Marché (si applicable)" value={valeurTexte(f.nom_marche)} onChangeText={maj('nom_marche')} />
