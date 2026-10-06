@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { useApi } from '../api.js';
 import { Entete } from '../components/Layout.jsx';
 import { Badge, Etat, Panneau, Vide } from '../components/Ui.jsx';
@@ -55,18 +55,28 @@ export default function ContribuableDetail() {
                   Doublon suspect : même téléphone que la fiche <Link to={`/contribuables/${c.doublon_suspect_de}`}>{c.doublon_numero}</Link>. À vérifier avant fusion.
                 </div>
               )}
-              <Panneau titre="Fiche contribuable" aide="Champs de la fiche de collecte du service de collecte">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                  {RUBRIQUES.map((r) => (
-                    <div key={r.titre}>
-                      <div className="gras" style={{ marginBottom: 8 }}>{r.titre}</div>
-                      <div className="fiche">
-                        {r.champs.map(([libelle, lire]) => (
-                          <div key={libelle}><div className="cle">{libelle}</div><div className="valeur">{texte(lire(c)) ?? '—'}</div></div>
-                        ))}
+              <Panneau titre="Fiche contribuable" aide="Champs de la fiche de collecte du service de collecte"
+                actions={c.latitude ? (
+                  <a className="btn petit" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${c.latitude}&mlon=${c.longitude}#map=18/${c.latitude}/${c.longitude}`}>
+                    <MapPin size={14} /> Position : {Number(c.latitude).toFixed(5)}, {Number(c.longitude).toFixed(5)}{c.precision_gps ? ` (± ${c.precision_gps} m)` : ''}
+                  </a>
+                ) : <span className="petit texte-doux">Position non capturée</span>}>
+                <div className="ligne" style={{ alignItems: 'flex-start', gap: 24 }}>
+                  {c.photo
+                    ? <img className="photo-contribuable" style={{ width: 220, height: 165 }} src={`data:image/jpeg;base64,${c.photo}`} alt="Photo du lieu" />
+                    : <div className="photo-contribuable" style={{ width: 220, height: 165, display: 'grid', placeItems: 'center', color: 'var(--texte-doux)' }}>Pas de photo du lieu</div>}
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    {RUBRIQUES.map((r) => (
+                      <div key={r.titre}>
+                        <div className="gras" style={{ marginBottom: 8 }}>{r.titre}</div>
+                        <div className="fiche">
+                          {r.champs.map(([libelle, lire]) => (
+                            <div key={libelle}><div className="cle">{libelle}</div><div className="valeur">{texte(lire(c)) ?? '—'}</div></div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </Panneau>
 

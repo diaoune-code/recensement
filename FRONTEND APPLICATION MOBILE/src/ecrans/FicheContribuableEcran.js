@@ -1,24 +1,36 @@
 // Fiche du contribuable : identité, et ce qu'il doit au service de l'agent pour la période en cours
 import { useCallback, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Image, Linking, Pressable, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSession } from '../contexte/Session';
-import { lireContribuable, paiementsDuContribuable } from '../db/depots';
+import { useSynchro } from '../contexte/Synchro';
+import { appel } from '../api/client';
+import { enregistrerPhotoTelechargee, lireContribuable, paiementsDuContribuable } from '../db/depots';
 import { Badge, BadgeSynchro, Bouton, Carte, Ecran, LigneInfo, Message, TitreSection } from '../composants/Ui';
 import { calculerMontant, dateHeure, descriptionTarif, gnf, libellePeriode, nomComplet, periodeCourante, valeurBase } from '../metier/calcul';
 import { couleurs, styles } from '../theme';
 
 export default function FicheContribuableEcran({ navigation, route }) {
   const { id, nouveau } = route.params;
-  const { config } = useSession();
+  const { config, jeton } = useSession();
+  const { serveurJoignable } = useSynchro();
   const [c, setC] = useState(null);
   const [paiements, setPaiements] = useState([]);
 
   const charger = useCallback(async () => {
-    setC(await lireContribuable(id));
+    const fiche = await lireContribuable(id);
+    setC(fiche);
     setPaiements(await paiementsDuContribuable(id));
-  }, [id]);
+    // Photo du lieu prise sur un autre téléphone : téléchargée à la demande quand le réseau est là
+    if (fiche?.a_photo && !fiche.photo && serveurJoignable !== false) {
+      try {
+        const r = await appel(`/contribuables/${id}/photo`, { jeton, delai: 15000 });
+        await enregistrerPhotoTelechargee(id, r.image_base64);
+        setC({ ...fiche, photo: r.image_base64 });
+      } catch { /* sans réseau : la photo s'affichera plus tard */ }
+    }
+  }, [id, jeton, serveurJoignable]);
 
   useFocusEffect(useCallback(() => { charger(); }, [charger]));
 
@@ -47,11 +59,21 @@ export default function FicheContribuableEcran({ navigation, route }) {
 
       {/* Uniquement les champs de la fiche de collecte du service de collecte */}
       <Carte style={{ gap: 8 }}>
+        {c.photo ? <Image source={{ uri: `data:image/jpeg;base64,${c.photo}` }} style={{ width: '100%', height: 180, borderRadius: 8 }} resizeMode="cover" /> : null}
         <View style={{ gap: 4 }}>
           <Text style={styles.titre}>{nomComplet(c)}</Text>
           <Text style={styles.texteDoux}>{c.numero || 'Numéro attribué à la synchronisation'}</Text>
           <BadgeSynchro etat={c.etat_synchro} />
         </View>
+        {c.latitude ? (
+          <Pressable onPress={() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${c.latitude},${c.longitude}`)}
+            style={[styles.ligne, { gap: 6 }]}>
+            <Ionicons name="location-outline" size={16} color={couleurs.bleu} />
+            <Text style={{ color: couleurs.bleu, fontSize: 14 }}>
+              Position : {Number(c.latitude).toFixed(5)}, {Number(c.longitude).toFixed(5)}{c.precision_gps ? ` (± ${c.precision_gps} m)` : ''}
+            </Text>
+          </Pressable>
+        ) : <Text style={styles.texteDoux}>Position non capturée</Text>}
         {c.etat_synchro === 'ERREUR' && <Message type="erreur" texte={`Refusé par le serveur : ${c.erreur_synchro}`} />}
         <Text style={[styles.titreSection, { marginTop: 4 }]}>Identification et localisation</Text>
         <LigneInfo cle="Type de contribuable" valeur={c.type_contribuable === 'PERSONNE_PHYSIQUE' ? 'Personne physique' : 'Personne morale (entreprise)'} />

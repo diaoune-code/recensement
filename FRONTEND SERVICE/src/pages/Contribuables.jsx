@@ -79,9 +79,21 @@ function FicheContribuable({ id, onFermer }) {
       <Etat chargement={chargement} erreur={erreur}>
         {c && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div className="petit texte-doux">{c.numero} · recensé par {c.agent} ({c.service_sigle}) le {date(c.created_at)}</div>
-            <div className="fiche">
-              {lignes.map(([k, v]) => <div key={k}><div className="cle">{k}</div><div className="valeur">{v ?? '—'}</div></div>)}
+            <div className="ligne" style={{ justifyContent: 'space-between' }}>
+              <span className="petit texte-doux">{c.numero} · recensé par {c.agent} ({c.service_sigle}) le {date(c.created_at)}</span>
+              {c.latitude ? (
+                <a className="btn petit" target="_blank" rel="noreferrer" href={`https://www.openstreetmap.org/?mlat=${c.latitude}&mlon=${c.longitude}#map=18/${c.latitude}/${c.longitude}`}>
+                  Position : {Number(c.latitude).toFixed(5)}, {Number(c.longitude).toFixed(5)}{c.precision_gps ? ` (± ${c.precision_gps} m)` : ''}
+                </a>
+              ) : <span className="petit texte-doux">Position non capturée</span>}
+            </div>
+            <div className="ligne" style={{ alignItems: 'flex-start', gap: 20 }}>
+              {c.photo
+                ? <img className="photo-contribuable" style={{ width: 200, height: 150 }} src={`data:image/jpeg;base64,${c.photo}`} alt="Photo du lieu" />
+                : <div className="photo-contribuable" style={{ width: 200, height: 150, display: 'grid', placeItems: 'center', color: 'var(--texte-doux)' }}>Pas de photo du lieu</div>}
+              <div className="fiche" style={{ flex: 1 }}>
+                {lignes.map(([k, v]) => <div key={k}><div className="cle">{k}</div><div className="valeur">{v ?? '—'}</div></div>)}
+              </div>
             </div>
             <div>
               <div className="gras" style={{ marginBottom: 8 }}>Paiements au service</div>

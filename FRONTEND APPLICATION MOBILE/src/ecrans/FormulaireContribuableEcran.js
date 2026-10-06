@@ -1,8 +1,10 @@
 // Fiche de recensement : UNIQUEMENT les champs de la « Fiche de collecte indiquée par le service de collecte »,
 // dans son ordre et ses rubriques. L'enregistrement est toujours local d'abord (fonctionne sans réseau).
 import { useEffect, useRef, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
 import * as Location from 'expo-location';
+import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSession } from '../contexte/Session';
 import { useSynchro } from '../contexte/Synchro';
 import { doublonsProbables, enregistrerContribuable, lireContribuable } from '../db/depots';
@@ -52,7 +54,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
     }
   }, [id, sigle, navigation]);
 
-  // Position relevée automatiquement en arrière-plan (ce n'est pas un champ de la fiche) : sert à la carte de la Mairie
+  // Position relevée aussi en arrière-plan : si l'agent n'appuie pas sur « Capturer la position », elle sert quand même à la carte
   useEffect(() => {
     let actif = true;
     (async () => {
@@ -67,6 +69,40 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
   }, []);
 
   const maj = (k) => (v) => setF((x) => ({ ...x, [k]: v }));
+  const [gpsEnCours, setGpsEnCours] = useState(false);
+  const [photoModifiee, setPhotoModifiee] = useState(false);
+
+  // Position du lieu, capturée par l'agent (précision élevée)
+  async function capturerPosition() {
+    setGpsEnCours(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') throw new Error('Autorisation de localisation refusée');
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setF((x) => ({
+        ...x,
+        latitude: Number(pos.coords.latitude.toFixed(6)),
+        longitude: Number(pos.coords.longitude.toFixed(6)),
+        precision_gps: pos.coords.accuracy ? Math.round(pos.coords.accuracy) : null,
+      }));
+    } catch (e) {
+      Alert.alert('Position', e.message || 'Position indisponible');
+    } finally {
+      setGpsEnCours(false);
+    }
+  }
+
+  // Photo du lieu, réduite (800 px, JPEG compressé) pour rester légère sur un réseau faible
+  async function prendrePhoto() {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') { Alert.alert('Photo', 'Autorisation de l\'appareil photo refusée'); return; }
+    const r = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.7 });
+    if (r.canceled) return;
+    const rendu = await ImageManipulator.manipulate(r.assets[0].uri).resize({ width: 800, height: null }).renderAsync();
+    const image = await rendu.saveAsync({ format: SaveFormat.JPEG, compress: 0.5, base64: true });
+    setF((x) => ({ ...x, photo: image.base64 }));
+    setPhotoModifiee(true);
+  }
 
   async function enregistrer() {
     setErreur(null);
@@ -113,7 +149,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
         // Liste des taxes et redevances : propre au service de l'agent
         complements: { ...(f.complements || {}), ...(sigle ? { [sigle]: { ...(f.complements?.[sigle] || {}), taxes_applicables: taxes } } : {}) },
       };
-      const nouvelId = await enregistrerContribuable(saisie, { serviceId: config?.service?.id, photoModifiee: false });
+      const nouvelId = await enregistrerContribuable(saisie, { serviceId: config?.service?.id, photoModifiee });
       signalerSaisie();
       if (id) navigation.goBack();
       else navigation.replace('Fiche', { id: nouvelId, nouveau: true });
@@ -153,6 +189,20 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
           <Champ libelle="Rue / Emprise" value={valeurTexte(f.rue)} onChangeText={maj('rue')}
             aide="Emprise : surface appartenant à la localité, occupée temporairement par un contribuable." />
           <Champ libelle="N° de concession / Boutique / Magasin / Kiosque" value={valeurTexte(f.numero_porte)} onChangeText={maj('numero_porte')} />
+          <View style={{ gap: 6 }}>
+            <Bouton titre={f.latitude ? 'Reprendre la position' : 'Capturer la position'} icone="locate-outline"
+              variante="bleu" onPress={capturerPosition} chargement={gpsEnCours} />
+            <Text style={styles.texteDoux}>
+              {f.latitude
+                ? `Position : ${f.latitude}, ${f.longitude}${f.precision_gps ? ` — précision ${f.precision_gps} m` : ''}`
+                : 'Le GPS fonctionne sans réseau. Placez-vous devant le lieu.'}
+            </Text>
+          </View>
+          <View style={{ gap: 8, alignItems: 'center' }}>
+            {f.photo ? <Image source={{ uri: `data:image/jpeg;base64,${f.photo}` }} style={{ width: '100%', height: 200, borderRadius: 8 }} resizeMode="cover" /> : null}
+            <Bouton titre={f.photo ? 'Reprendre la photo du lieu' : 'Prendre la photo du lieu'} icone="camera-outline"
+              variante="secondaire" onPress={prendrePhoto} style={{ alignSelf: 'stretch' }} />
+          </View>
           <ListeDeroulante libelle="Type d'habitat" options={HABITATS} valeur={f.type_habitat} onChange={maj('type_habitat')} />
           {f.type_habitat === 'Immeuble' && (
             <Champ libelle="Nombre d'étages" keyboardType="number-pad" value={valeurTexte(f.nb_etages)} onChangeText={maj('nb_etages')} />
