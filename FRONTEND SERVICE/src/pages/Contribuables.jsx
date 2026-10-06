@@ -66,7 +66,7 @@ function FicheContribuable({ id, onFermer }) {
     ['Rue / emprise', [c.rue, c.sur_emprise === 'OUI' ? 'sur emprise' : null].filter(Boolean).join(' — ') || null],
     ['N° de concession', c.numero_porte], ['N° boutique / magasin / kiosque', c.numero_etal],
     ['Type d\'habitat', [c.type_habitat, c.nb_etages ? `${c.nb_etages} étage(s)` : null].filter(Boolean).join(' — ') || null],
-    ['Activité', c.activite_principale], ['Forme du point', c.forme_point], ['Surface (m²)', c.surface_m2], ['Étals', c.nb_etals],
+    ['Activité', c.activite_principale], ['Surface (m²)', c.surface_m2], ['Étals', c.nb_etals],
     ['Type de bien', c.type_bien], ['Usage principal du bien', c.usage_bien], ['Documents fonciers', c.documents_fonciers],
     ['Lien répondant / bien', c.lien_repondant_bien],
     ['Dernier paiement déclaré', [c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null].filter(Boolean).join(' — ') || null],

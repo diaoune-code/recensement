@@ -6,11 +6,14 @@ import { Erreur, Etat, Panneau } from '../components/Ui.jsx';
 
 const TYPES = { texte: 'Texte', nombre: 'Nombre', choix: 'Liste de choix' };
 
+// Questions déjà posées par la fiche commune (fiche de collecte du service de collecte) : à ne pas ajouter ici
 const SECTIONS_COMMUNES = [
-  'Identification : type, nom, prénoms, raison sociale, sexe, pièce d\'identité, téléphones, NIF / RCCM, statut fiscal',
-  'Localisation : quartier, secteur, rue, n° de porte ou concession, marché et n° d\'étal, repères, coordonnées GPS',
-  'Activité : activité principale, description, forme du point, occupation, surface, nombre d\'étals et de personnes',
-  'Photo du contribuable ou du site',
+  'Identification : type, nom, prénom(s), raison sociale, sexe, téléphones, activité formelle / informelle, NIF, RCCM',
+  'Localisation : quartier, marché, secteur, rue / emprise, n° de concession, n° de boutique / magasin / kiosque, type d\'habitat, nombre d\'étages, repères, GPS',
+  'Activité : activité principale, description et produits, surface, nombre d\'étals et de personnes, taxes et redevances concernées',
+  'Bien et documents : type de bien, usage principal, documents fonciers, lien entre le répondant et le bien',
+  'Paiements et suivi : dernier paiement déclaré',
+  'Pièces, consentement et contrôle qualité : pièce présentée, photo, consentement, contrôle qualité, observations',
 ];
 
 export default function Formulaire() {
@@ -83,7 +86,11 @@ export default function Formulaire() {
             <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7 }}>
               {SECTIONS_COMMUNES.map((s) => <li key={s}>{s}</li>)}
             </ul>
-            <div className="alerte-boite avertissement" style={{ marginTop: 14 }}>
+            <div className="alerte-boite info" style={{ marginTop: 14 }}>
+              N'ajoutez pas une question déjà posée ci-dessus : l'enregistrement sera refusé pour éviter les doublons.
+              Les champs « Liste de choix » s'affichent en liste déroulante sur le téléphone.
+            </div>
+            <div className="alerte-boite avertissement" style={{ marginTop: 10 }}>
               Les champs « Nombre » peuvent servir de base de calcul à une tâche « Tarif × base » (ex. nombre d'engins × 50 000 GNF).
               Supprimer un champ utilisé par une tâche la fera revenir en saisie manuelle.
             </div>

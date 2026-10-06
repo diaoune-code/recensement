@@ -8,7 +8,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSession } from '../contexte/Session';
 import { useSynchro } from '../contexte/Synchro';
 import { doublonsProbables, enregistrerContribuable, lireContribuable } from '../db/depots';
-import { Bouton, Carte, Champ, Choix, ChoixMultiple, Ecran, Message, TitreSection } from '../composants/Ui';
+import { Bouton, Carte, Champ, Ecran, ListeDeroulante, Message, TitreSection } from '../composants/Ui';
 import { nomComplet } from '../metier/calcul';
 import { couleurs, styles } from '../theme';
 
@@ -23,16 +23,21 @@ const STATUTS = [{ valeur: 'FORMEL', libelle: 'Formelle (F)' }, { valeur: 'INFOR
 // Rubriques de la « Fiche de collecte indiquée par le service de collecte »
 const OUI_NON = [{ valeur: 'OUI', libelle: 'Oui' }, { valeur: 'NON', libelle: 'Non' }];
 const HABITATS = ['Villa', 'Immeuble', 'Maison simple', 'Autre'];
-const TYPES_BIEN = ['Terrain nu', 'Bâtiment', 'Boutique / magasin', 'Kiosque', 'Étal / emplacement', 'Autre'];
+// Une seule question par information : « Type de bien » remplace aussi l'ancienne « Forme du point d'activité »
+// et « Type de site » ; « Lien avec le bien » remplace aussi l'ancienne « Occupation du local ».
+const TYPES_BIEN = ['Terrain nu', 'Bâtiment (habitation)', 'Boutique / magasin', 'Kiosque', 'Étal / table de marché', 'Hangar / atelier',
+  'Dépôt / entrepôt', 'Activité à domicile', 'Activité ambulante (sans local)', 'Autre'];
 const USAGES_BIEN = ['Habitation', 'Commerce', 'Mixte', 'Bureau / service', 'Autre'];
 const DOCUMENTS_FONCIERS = ['Titre foncier', 'Permis d\'occuper', 'Lettre d\'attribution', 'Acte de vente', 'Aucun document'];
-const LIENS_BIEN = ['Propriétaire', 'Locataire', 'Gérant / exploitant', 'Membre de la famille', 'Mandataire', 'Autre'];
+const LIENS_BIEN = ['Propriétaire', 'Locataire', 'Gérant / exploitant', 'Membre de la famille', 'Mandataire', 'Occupant sans titre', 'Autre'];
 const CONTROLES = [{ valeur: 'PIECE_VERIFIEE', libelle: 'Pièce vérifiée' }, { valeur: 'DECLARATIF', libelle: 'Déclaratif, non vérifié' }];
-const SITES = ['Lieu d\'activité économique', 'Domicile', 'Bien foncier', 'Marché / emplacement commercial'];
 const ACTIVITES = ['Commerce de détail', 'Commerce de gros', 'Restauration / débit de boissons', 'Artisanat', 'Coiffure / esthétique',
   'Réparation / maintenance', 'Transport', 'Services', 'Hébergement', 'Agriculture / élevage', 'Autre'];
-const FORMES = ['Boutique en dur', 'Local loué', 'Hangar / atelier', 'Kiosque', 'Étal / table de marché', 'À domicile', 'Ambulant', 'Dépôt'];
-const OCCUPATIONS = ['Propriétaire', 'Locataire', 'Occupant sans titre', 'Emplacement communal'];
+
+// Champs propres à un service qui reposeraient une question de la fiche commune : jamais affichés en double
+const CLES_DEJA_DEMANDEES = new Set(['type_bien', 'usage', 'usage_bien', 'titre', 'documents_fonciers', 'nb_niveaux', 'nb_etages',
+  'type_emplacement', 'type_habitat', 'lien_repondant_bien', 'occupation', 'quartier', 'secteur', 'telephone', 'nom', 'prenoms',
+  'nif', 'rccm', 'produits', 'numero_de_telephone', 'type_de_bien', 'usage_principal_du_bien', 'nombre_d_etages', 'nombre_de_niveaux']);
 
 const nombreOuNull = (v) => (v === '' || v === null || v === undefined || Number.isNaN(Number(String(v).replace(',', '.'))) ? null : Number(String(v).replace(',', '.')));
 
@@ -41,7 +46,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
   const { config } = useSession();
   const { signalerSaisie } = useSynchro();
   const sigle = config?.service?.sigle;
-  const champsService = config?.service?.champs || [];
+  const champsService = (config?.service?.champs || []).filter((ch) => !CLES_DEJA_DEMANDEES.has(ch.cle));
 
   const [f, setF] = useState({ type_contribuable: 'PERSONNE_PHYSIQUE', ...prefill });
   const [complement, setComplement] = useState({});
@@ -161,16 +166,16 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
       <Ecran>
         <TitreSection>Identification</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Choix options={TYPES} valeur={f.type_contribuable} onChange={maj('type_contribuable')} />
+          <ListeDeroulante libelle="Type de contribuable" obligatoire options={TYPES} valeur={f.type_contribuable} onChange={maj('type_contribuable')} />
           <Champ libelle="Nom" obligatoire autoCapitalize="characters" value={valeurTexte(f.nom)} onChangeText={maj('nom')} />
           <Champ libelle="Prénom(s)" value={valeurTexte(f.prenoms)} onChangeText={maj('prenoms')} />
           {f.type_contribuable !== 'PERSONNE_PHYSIQUE' && (
             <Champ libelle="Raison sociale / nom commercial" value={valeurTexte(f.raison_sociale)} onChangeText={maj('raison_sociale')} />
           )}
-          {f.type_contribuable === 'PERSONNE_PHYSIQUE' && <Choix libelle="Sexe" options={['Femme', 'Homme']} valeur={f.sexe} onChange={maj('sexe')} />}
+          {f.type_contribuable === 'PERSONNE_PHYSIQUE' && <ListeDeroulante libelle="Sexe" options={['Femme', 'Homme']} valeur={f.sexe} onChange={maj('sexe')} />}
           <Champ libelle="Numéro de téléphone" keyboardType="phone-pad" value={valeurTexte(f.telephone)} onChangeText={maj('telephone')} />
           <Champ libelle="Téléphone secondaire" keyboardType="phone-pad" value={valeurTexte(f.telephone2)} onChangeText={maj('telephone2')} />
-          <Choix libelle="Activité : formelle ou informelle (F / NF)" options={STATUTS} valeur={f.statut_fiscal} onChange={maj('statut_fiscal')} />
+          <ListeDeroulante libelle="Activité : formelle ou informelle (F / NF)" options={STATUTS} valeur={f.statut_fiscal} onChange={maj('statut_fiscal')} />
           {f.statut_fiscal === 'FORMEL' && (
             <>
               <Champ libelle="NIF" value={valeurTexte(f.nif)} onChangeText={maj('nif')} />
@@ -181,16 +186,15 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
         <TitreSection>Localisation</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Choix libelle="Type de site" options={SITES} valeur={f.type_site} onChange={maj('type_site')} />
-          <Choix libelle="Quartier" obligatoire options={quartiers} valeur={f.quartier} onChange={maj('quartier')} />
+          <ListeDeroulante libelle="Quartier" obligatoire options={quartiers} valeur={f.quartier} onChange={maj('quartier')} />
           <Champ libelle="Marché (si applicable)" value={valeurTexte(f.nom_marche)} onChangeText={maj('nom_marche')} />
           <Champ libelle="Secteur" value={valeurTexte(f.secteur)} onChangeText={maj('secteur')} />
           <Champ libelle="Rue / emprise" value={valeurTexte(f.rue)} onChangeText={maj('rue')} />
-          <Choix libelle="Occupe une emprise de la localité ?" options={OUI_NON} valeur={f.sur_emprise} onChange={maj('sur_emprise')} />
-          <Text style={[styles.texteDoux, { marginTop: -6 }]}>Emprise : surface appartenant à la localité, occupée temporairement par un contribuable.</Text>
+          <ListeDeroulante libelle="Occupe une emprise de la localité ?" options={OUI_NON} valeur={f.sur_emprise} onChange={maj('sur_emprise')}
+            aide="Emprise : surface appartenant à la localité, occupée temporairement par un contribuable." />
           <Champ libelle="N° de concession" value={valeurTexte(f.numero_porte)} onChangeText={maj('numero_porte')} />
           <Champ libelle="N° de boutique / magasin / kiosque / étal" value={valeurTexte(f.numero_etal)} onChangeText={maj('numero_etal')} />
-          <Choix libelle="Type d'habitat" options={HABITATS} valeur={f.type_habitat} onChange={maj('type_habitat')} />
+          <ListeDeroulante libelle="Type d'habitat" options={HABITATS} valeur={f.type_habitat} onChange={maj('type_habitat')} />
           {f.type_habitat === 'Immeuble' && (
             <Champ libelle="Nombre d'étages" keyboardType="number-pad" value={valeurTexte(f.nb_etages)} onChangeText={maj('nb_etages')} />
           )}
@@ -206,17 +210,16 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
         <TitreSection>Activité économique</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Choix libelle="Activité principale" options={ACTIVITES} valeur={f.activite_principale} onChange={maj('activite_principale')} />
+          <ListeDeroulante libelle="Activité principale" options={ACTIVITES} valeur={f.activite_principale} onChange={maj('activite_principale')} />
           <Champ libelle="Description de l'activité / produits" multiline value={valeurTexte(f.description_activite)} onChangeText={maj('description_activite')} />
-          <Choix libelle="Forme du point d'activité" options={FORMES} valeur={f.forme_point} onChange={maj('forme_point')} />
-          <Choix libelle="Occupation du local" options={OCCUPATIONS} valeur={f.occupation} onChange={maj('occupation')} />
           <Champ libelle="Surface occupée (m²)" keyboardType="decimal-pad" value={valeurTexte(f.surface_m2)} onChangeText={maj('surface_m2')} />
           <Champ libelle="Nombre de tables / étals" keyboardType="number-pad" value={valeurTexte(f.nb_etals)} onChangeText={maj('nb_etals')} />
           <Champ libelle="Personnes travaillant sur le site" keyboardType="number-pad" value={valeurTexte(f.nb_personnes)} onChangeText={maj('nb_personnes')} />
           {taxesService.length > 0 ? (
-            <ChoixMultiple libelle={`Taxes et redevances concernées (${config.service.sigle})`} options={taxesService}
-              valeurs={complement.taxes_applicables || []} onChange={(v) => setComplement((x) => ({ ...x, taxes_applicables: v }))}
-              aide="Seules les taxes cochées seront proposées à l'encaissement pour ce contribuable." />
+            <ListeDeroulante multiple libelle={`Taxes et redevances concernées (${config.service.sigle})`} options={taxesService}
+              valeur={complement.taxes_applicables || []} onChange={(v) => setComplement((x) => ({ ...x, taxes_applicables: v }))}
+              placeholder="Choisir une ou plusieurs taxes…"
+              aide="Plusieurs choix possibles. Seules les taxes choisies seront proposées à l'encaissement pour ce contribuable." />
           ) : (
             <Text style={styles.texteDoux}>Aucune taxe n'est encore paramétrée pour votre service : la liste des taxes apparaîtra ici.</Text>
           )}
@@ -224,10 +227,10 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
         <TitreSection>Bien et documents</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Choix libelle="Type de bien" options={TYPES_BIEN} valeur={f.type_bien} onChange={maj('type_bien')} />
-          <Choix libelle="Usage principal du bien" options={USAGES_BIEN} valeur={f.usage_bien} onChange={maj('usage_bien')} />
-          <Choix libelle="Documents fonciers" options={DOCUMENTS_FONCIERS} valeur={f.documents_fonciers} onChange={maj('documents_fonciers')} />
-          <Choix libelle="Lien entre le répondant et le bien" options={LIENS_BIEN} valeur={f.lien_repondant_bien} onChange={maj('lien_repondant_bien')} />
+          <ListeDeroulante libelle="Type de bien" options={TYPES_BIEN} valeur={f.type_bien} onChange={maj('type_bien')} />
+          <ListeDeroulante libelle="Usage principal du bien" options={USAGES_BIEN} valeur={f.usage_bien} onChange={maj('usage_bien')} />
+          <ListeDeroulante libelle="Documents fonciers" options={DOCUMENTS_FONCIERS} valeur={f.documents_fonciers} onChange={maj('documents_fonciers')} />
+          <ListeDeroulante libelle="Lien entre le répondant et le bien" options={LIENS_BIEN} valeur={f.lien_repondant_bien} onChange={maj('lien_repondant_bien')} />
         </Carte>
 
         <TitreSection>Paiements et suivi</TitreSection>
@@ -242,7 +245,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
             <TitreSection>{config.service.nom}</TitreSection>
             <Carte style={{ gap: 12 }}>
               {champsService.map((ch) => (ch.type === 'choix' ? (
-                <Choix key={ch.cle} libelle={ch.libelle} options={ch.options || []} valeur={complement[ch.cle]}
+                <ListeDeroulante key={ch.cle} libelle={ch.libelle} options={ch.options || []} valeur={complement[ch.cle]}
                   onChange={(v) => setComplement((x) => ({ ...x, [ch.cle]: v }))} />
               ) : (
                 <Champ key={ch.cle} libelle={ch.libelle} keyboardType={ch.type === 'nombre' ? 'decimal-pad' : 'default'}
@@ -254,15 +257,15 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
         <TitreSection>Pièces, consentement et contrôle qualité</TitreSection>
         <Carte style={{ gap: 12 }}>
-          <Choix libelle="Pièce présentée" options={PIECES} valeur={f.piece_type} onChange={maj('piece_type')} />
+          <ListeDeroulante libelle="Pièce présentée" options={PIECES} valeur={f.piece_type} onChange={maj('piece_type')} />
           {f.piece_type && f.piece_type !== 'Aucune' && <Champ libelle="Numéro de la pièce" value={valeurTexte(f.piece_numero)} onChangeText={maj('piece_numero')} />}
           <View style={{ alignItems: 'center', gap: 10 }}>
             {f.photo ? <Image source={{ uri: `data:image/jpeg;base64,${f.photo}` }} style={{ width: 180, height: 180, borderRadius: 8 }} />
               : <Text style={styles.texteDoux}>Photo du contribuable, de son site ou de sa pièce</Text>}
             <Bouton titre={f.photo ? 'Reprendre la photo' : 'Prendre une photo'} icone="camera-outline" variante="secondaire" onPress={prendrePhoto} style={{ alignSelf: 'stretch' }} />
           </View>
-          <Choix libelle="Le contribuable consent à l'enregistrement de ses informations" obligatoire options={OUI_NON} valeur={f.consentement} onChange={maj('consentement')} />
-          <Choix libelle="Contrôle qualité" options={CONTROLES} valeur={f.controle_qualite} onChange={maj('controle_qualite')} />
+          <ListeDeroulante libelle="Le contribuable consent à l'enregistrement de ses informations" obligatoire options={OUI_NON} valeur={f.consentement} onChange={maj('consentement')} />
+          <ListeDeroulante libelle="Contrôle qualité" options={CONTROLES} valeur={f.controle_qualite} onChange={maj('controle_qualite')} />
           <Champ libelle="Observations de l'agent" multiline value={valeurTexte(f.observations)} onChangeText={maj('observations')} />
         </Carte>
 

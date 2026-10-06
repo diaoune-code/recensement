@@ -107,6 +107,20 @@ router.get('/formulaire', asynchrone(async (req, res) => {
   res.json(await champsDuService(req.chef.service_id));
 }));
 
+// Questions déjà posées par la fiche commune de recensement : un service ne peut pas les reposer
+const DEJA_DANS_LA_FICHE = {
+  type_bien: 'Type de bien', type_de_bien: 'Type de bien', usage: 'Usage principal du bien', usage_bien: 'Usage principal du bien',
+  usage_principal_du_bien: 'Usage principal du bien', titre: 'Documents fonciers', titre_d_occupation: 'Documents fonciers',
+  documents_fonciers: 'Documents fonciers', nb_niveaux: 'Nombre d\'étages', nombre_de_niveaux: 'Nombre d\'étages',
+  nb_etages: 'Nombre d\'étages', nombre_d_etages: 'Nombre d\'étages', type_habitat: 'Type d\'habitat', type_d_habitat: 'Type d\'habitat',
+  type_emplacement: 'Type de bien', type_d_emplacement: 'Type de bien', lien_repondant_bien: 'Lien entre le répondant et le bien',
+  occupation: 'Lien entre le répondant et le bien', quartier: 'Quartier', secteur: 'Secteur', telephone: 'Numéro de téléphone',
+  nom: 'Nom', prenoms: 'Prénom(s)', prenom: 'Prénom(s)', activite: 'Activité principale', surface: 'Surface occupée (m²)',
+  dernier_paiement: 'Dernier paiement déclaré', consentement: 'Consentement', emprise: 'Occupe une emprise de la localité',
+  nif: 'NIF', rccm: 'RCCM', numero_de_telephone: 'Numéro de téléphone', produits: 'Description de l\'activité / produits',
+  produits_vendus: 'Description de l\'activité / produits',
+};
+
 router.put('/formulaire', asynchrone(async (req, res) => {
   const champs = Array.isArray(req.body) ? req.body : [];
   const cles = new Set();
@@ -114,6 +128,9 @@ router.put('/formulaire', asynchrone(async (req, res) => {
     const cle = String(c.cle || c.libelle || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
       .toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     if (!cle || !c.libelle?.trim()) throw new ErreurMetier(400, 'Chaque champ doit avoir un libellé');
+    const cleLibelle = c.libelle.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const doublon = DEJA_DANS_LA_FICHE[cle] || DEJA_DANS_LA_FICHE[cleLibelle];
+    if (doublon) throw new ErreurMetier(400, `« ${c.libelle} » est déjà demandé dans la fiche commune (« ${doublon} ») : inutile de l'ajouter`);
     if (cles.has(cle)) throw new ErreurMetier(400, `Champ en double : ${c.libelle}`);
     cles.add(cle);
     if (!['texte', 'nombre', 'choix'].includes(c.type)) throw new ErreurMetier(400, `Type invalide pour ${c.libelle}`);

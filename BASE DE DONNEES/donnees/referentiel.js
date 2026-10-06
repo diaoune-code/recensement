@@ -18,13 +18,11 @@ export const services = [
   { code: 5,  sigle: 'HYG', nom: 'Hygiène et salubrité' },
   { code: 6,  sigle: 'QUA', nom: 'Service qualité' },
   { code: 7,  sigle: 'CAD', nom: 'Habitat et cadastre',
+    // Type de bien, usage, documents fonciers et nombre d'étages sont déjà dans la fiche commune
     champs: [
-      { cle: 'type_bien', libelle: 'Type de bien', type: 'choix', options: ['Terrain nu', 'Bâtiment achevé', 'Bâtiment en construction', 'Agrandissement'] },
-      { cle: 'usage', libelle: 'Usage', type: 'choix', options: ['Habitation', 'Commerce', 'Mixte', 'Équipement'] },
+      { cle: 'etat_construction', libelle: 'État des travaux', type: 'choix', options: ['Bâtiment achevé', 'En construction', 'Agrandissement / aménagement'] },
       { cle: 'surface_parcelle', libelle: 'Surface de la parcelle (m²)', type: 'nombre' },
       { cle: 'surface_batie', libelle: 'Surface bâtie (m²)', type: 'nombre' },
-      { cle: 'nb_niveaux', libelle: 'Nombre de niveaux', type: 'nombre' },
-      { cle: 'titre', libelle: 'Titre d\'occupation', type: 'choix', options: ['Titre foncier', 'Permis d\'occuper', 'Lettre d\'attribution', 'Aucun'] },
       { cle: 'numero_permis', libelle: 'N° permis de construire', type: 'texte' },
     ] },
   { code: 8,  sigle: 'JEU', nom: 'Service jeunesse' },
@@ -38,11 +36,8 @@ export const services = [
       { cle: 'nb_engins', libelle: 'Nombre d\'engins', type: 'nombre' },
       { cle: 'immatriculation', libelle: 'Immatriculation(s)', type: 'texte' },
     ] },
-  { code: 11, sigle: 'PF',  nom: 'Pool financier',
-    champs: [
-      { cle: 'type_emplacement', libelle: 'Type d\'emplacement', type: 'choix', options: ['Étal / table', 'Kiosque', 'Stand', 'Boutique', 'Ambulant'] },
-      { cle: 'produits', libelle: 'Produits vendus', type: 'texte' },
-    ] },
+  // Type d'emplacement et produits vendus sont déjà dans la fiche commune (type de bien, description de l'activité)
+  { code: 11, sigle: 'PF',  nom: 'Pool financier' },
   { code: 12, sigle: 'TOU', nom: 'Hôtellerie et tourisme' },
   { code: 13, sigle: 'MIN', nom: 'Mines et géologie' },
   { code: 14, sigle: 'ENV', nom: 'Service environnement' },

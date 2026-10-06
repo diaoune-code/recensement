@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { couleurs, styles as s } from '../theme';
 
@@ -130,7 +131,74 @@ export function LigneInfo({ cle, valeur }) {
   );
 }
 
+// Liste déroulante : le champ affiche le choix ; un appui ouvre la liste des options.
+// `multiple` : plusieurs choix possibles (valeur = tableau), validés par le bouton « Valider ».
+export function ListeDeroulante({ libelle, options, valeur, onChange, obligatoire, multiple = false, aide, placeholder = 'Choisir…' }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [brouillon, setBrouillon] = useState([]);
+  const opts = options.map((o) => (typeof o === 'string' ? { valeur: o, libelle: o } : o));
+  const choisies = multiple ? (valeur || []) : [];
+  const affichage = multiple
+    ? opts.filter((o) => choisies.includes(o.valeur)).map((o) => o.libelle).join(', ')
+    : opts.find((o) => o.valeur === valeur)?.libelle;
+
+  const ouvrir = () => { setBrouillon(choisies); setOuvert(true); };
+  const choisir = (v) => {
+    if (multiple) setBrouillon((b) => (b.includes(v) ? b.filter((x) => x !== v) : [...b, v]));
+    else { onChange(v); setOuvert(false); }
+  };
+
+  return (
+    <View style={{ gap: 5 }}>
+      {libelle && <Text style={st.libelle}>{libelle}{obligatoire ? ' *' : ''}</Text>}
+      <Pressable onPress={ouvrir} accessibilityRole="button" accessibilityLabel={libelle}
+        style={[st.saisie, { flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+        <Text style={{ flex: 1, fontSize: 15, color: affichage ? couleurs.texte : '#9aa3b2' }} numberOfLines={2}>{affichage || placeholder}</Text>
+        <Ionicons name="chevron-down" size={18} color={couleurs.texteDoux} />
+      </Pressable>
+      {aide && <Text style={s.texteDoux}>{aide}</Text>}
+
+      <Modal visible={ouvert} transparent animationType="slide" onRequestClose={() => setOuvert(false)}>
+        <View style={st.voile}>
+          <Pressable style={{ flex: 1 }} onPress={() => setOuvert(false)} />
+          <View style={st.feuille}>
+            <View style={[s.ligne, { justifyContent: 'space-between', marginBottom: 8 }]}>
+              <Text style={[s.titre, { fontSize: 17, flex: 1 }]} numberOfLines={2}>{libelle}</Text>
+              <Pressable onPress={() => setOuvert(false)} hitSlop={10}><Ionicons name="close" size={24} color={couleurs.texteDoux} /></Pressable>
+            </View>
+            <ScrollView style={{ maxHeight: 420 }}>
+              {!multiple && !obligatoire && valeur ? (
+                <Pressable onPress={() => { onChange(null); setOuvert(false); }} style={st.option}>
+                  <Text style={{ fontSize: 15, color: couleurs.texteDoux, fontStyle: 'italic' }}>Effacer le choix</Text>
+                </Pressable>
+              ) : null}
+              {opts.map((o) => {
+                const actif = multiple ? brouillon.includes(o.valeur) : o.valeur === valeur;
+                return (
+                  <Pressable key={String(o.valeur)} onPress={() => choisir(o.valeur)} style={[st.option, actif && { backgroundColor: couleurs.primaireClair }]}>
+                    <Ionicons name={multiple ? (actif ? 'checkbox' : 'square-outline') : (actif ? 'radio-button-on' : 'radio-button-off')}
+                      size={20} color={actif ? couleurs.primaire : couleurs.texteDoux} />
+                    <Text style={{ flex: 1, fontSize: 15, color: couleurs.texte }}>{o.libelle}</Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+            {multiple && (
+              <Pressable onPress={() => { onChange(brouillon); setOuvert(false); }} style={[st.bouton, { backgroundColor: couleurs.primaire, borderColor: couleurs.primaire, marginTop: 12 }]}>
+                <Text style={[st.boutonTexte, { color: '#fff' }]}>Valider ({brouillon.length})</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
 const st = StyleSheet.create({
+  voile: { flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.45)' },
+  feuille: { backgroundColor: couleurs.blanc, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, paddingBottom: 28 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 8, borderRadius: 8 },
   bouton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 13, paddingHorizontal: 16, borderRadius: 8, borderWidth: 1 },
   boutonTexte: { fontSize: 15, fontWeight: '600' },
   libelle: { fontSize: 13, fontWeight: '600', color: couleurs.texteDoux },

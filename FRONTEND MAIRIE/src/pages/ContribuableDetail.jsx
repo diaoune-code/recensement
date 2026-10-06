@@ -23,8 +23,8 @@ const LIBELLES = {
 // Rubriques de la « Fiche de collecte indiquée par le service de collecte »
 const SECTIONS = [
   { titre: 'Identification', cles: ['type_contribuable', 'sexe', 'date_naissance', 'nationalite', 'telephone', 'telephone2', 'email', 'statut_fiscal', 'nif', 'rccm'] },
-  { titre: 'Localisation', cles: ['type_site', 'quartier', 'nom_marche', 'secteur', 'rue', 'sur_emprise', 'numero_porte', 'numero_etal', 'type_habitat', 'nb_etages', 'repere'] },
-  { titre: 'Activité économique', cles: ['activite_principale', 'description_activite', 'forme_point', 'occupation', 'surface_m2', 'nb_etals', 'nb_personnes'] },
+  { titre: 'Localisation', cles: ['quartier', 'nom_marche', 'secteur', 'rue', 'sur_emprise', 'numero_porte', 'numero_etal', 'type_habitat', 'nb_etages', 'repere'] },
+  { titre: 'Activité économique', cles: ['activite_principale', 'description_activite', 'surface_m2', 'nb_etals', 'nb_personnes'] },
   { titre: 'Bien et documents', cles: ['type_bien', 'usage_bien', 'documents_fonciers', 'lien_repondant_bien'] },
   { titre: 'Paiements et suivi', cles: ['dernier_paiement_date', 'dernier_paiement_montant'] },
   { titre: 'Pièces, consentement et contrôle qualité', cles: ['piece_type', 'piece_numero', 'consentement', 'controle_qualite', 'observations'] },

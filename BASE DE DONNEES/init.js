@@ -146,10 +146,9 @@ async function chargerDemo(db) {
     const id = crypto.randomUUID();
     const estMarche = agent.sigle === 'PF';
     const complements = {};
-    if (agent.sigle === 'CAD') complements.CAD = { type_bien: choix(['Bâtiment achevé', 'Bâtiment en construction']), usage: choix(['Habitation', 'Commerce', 'Mixte']), surface_parcelle: 300 + Math.floor(alea() * 400), surface_batie: 80 + Math.floor(alea() * 150) };
+    if (agent.sigle === 'CAD') complements.CAD = { etat_construction: choix(['Bâtiment achevé', 'En construction']), surface_parcelle: 300 + Math.floor(alea() * 400), surface_batie: 80 + Math.floor(alea() * 150) };
     if (agent.sigle === 'TRA') complements.TRA = { type_engin: choix(['Tricycle', 'Charrette', 'Taxi']), nb_engins: 1 + Math.floor(alea() * 3) };
     if (agent.sigle === 'ELV') complements.ELV = { espece: choix(['Bovins', 'Ovins', 'Caprins']), nb_tetes: 5 + Math.floor(alea() * 30) };
-    if (estMarche) complements.PF = { type_emplacement: choix(['Étal / table', 'Kiosque', 'Stand']) };
 
     await db.query(
       `INSERT INTO contribuables (id, numero, nom, prenoms, sexe, telephone, statut_fiscal, type_site, quartier, secteur,
