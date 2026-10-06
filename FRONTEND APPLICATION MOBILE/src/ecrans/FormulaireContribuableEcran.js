@@ -8,7 +8,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useSession } from '../contexte/Session';
 import { useSynchro } from '../contexte/Synchro';
 import { doublonsProbables, enregistrerContribuable, lireContribuable } from '../db/depots';
-import { Bouton, Carte, Champ, Choix, Ecran, Message, TitreSection } from '../composants/Ui';
+import { Bouton, Carte, Champ, Choix, ChoixMultiple, Ecran, Message, TitreSection } from '../composants/Ui';
 import { nomComplet } from '../metier/calcul';
 import { couleurs, styles } from '../theme';
 
@@ -19,7 +19,15 @@ const TYPES = [
   { valeur: 'ETABLISSEMENT', libelle: 'Établissement' },
 ];
 const PIECES = ['CNI', 'Carte d\'électeur', 'Passeport', 'Carte consulaire', 'Récépissé', 'Aucune'];
-const STATUTS = [{ valeur: 'FORMEL', libelle: 'Formelle' }, { valeur: 'INFORMEL', libelle: 'Informelle' }, { valeur: 'NON_VERIFIE', libelle: 'Non vérifié' }];
+const STATUTS = [{ valeur: 'FORMEL', libelle: 'Formelle (F)' }, { valeur: 'INFORMEL', libelle: 'Informelle (NF)' }, { valeur: 'NON_VERIFIE', libelle: 'Non vérifié' }];
+// Rubriques de la « Fiche de collecte indiquée par le service de collecte »
+const OUI_NON = [{ valeur: 'OUI', libelle: 'Oui' }, { valeur: 'NON', libelle: 'Non' }];
+const HABITATS = ['Villa', 'Immeuble', 'Maison simple', 'Autre'];
+const TYPES_BIEN = ['Terrain nu', 'Bâtiment', 'Boutique / magasin', 'Kiosque', 'Étal / emplacement', 'Autre'];
+const USAGES_BIEN = ['Habitation', 'Commerce', 'Mixte', 'Bureau / service', 'Autre'];
+const DOCUMENTS_FONCIERS = ['Titre foncier', 'Permis d\'occuper', 'Lettre d\'attribution', 'Acte de vente', 'Aucun document'];
+const LIENS_BIEN = ['Propriétaire', 'Locataire', 'Gérant / exploitant', 'Membre de la famille', 'Mandataire', 'Autre'];
+const CONTROLES = [{ valeur: 'PIECE_VERIFIEE', libelle: 'Pièce vérifiée' }, { valeur: 'DECLARATIF', libelle: 'Déclaratif, non vérifié' }];
 const SITES = ['Lieu d\'activité économique', 'Domicile', 'Bien foncier', 'Marché / emplacement commercial'];
 const ACTIVITES = ['Commerce de détail', 'Commerce de gros', 'Restauration / débit de boissons', 'Artisanat', 'Coiffure / esthétique',
   'Réparation / maintenance', 'Transport', 'Services', 'Hébergement', 'Agriculture / élevage', 'Autre'];
@@ -91,6 +99,7 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
     if (!f.nom?.trim() && !f.raison_sociale?.trim()) { setErreur('Le nom (ou la raison sociale) est obligatoire.'); return; }
     if (!f.quartier) { setErreur('Le quartier est obligatoire.'); return; }
     if (f.telephone && !/^\+?\d{8,15}$/.test(f.telephone.replace(/\s/g, ''))) { setErreur('Numéro de téléphone invalide.'); return; }
+    if (!f.consentement) { setErreur('Indiquez si le contribuable consent à l\'enregistrement de ses informations (rubrique Pièces, consentement et contrôle qualité).'); return; }
 
     setEnregistrement(true);
     try {
@@ -118,6 +127,8 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
         const v = complement[ch.cle];
         if (v !== undefined && v !== null && v !== '') complementsTypes[ch.cle] = ch.type === 'nombre' ? nombreOuNull(v) : v;
       }
+      // Taxes et redevances concernées : propres au service de l'agent
+      if (complement.taxes_applicables?.length) complementsTypes.taxes_applicables = complement.taxes_applicables;
       const saisie = {
         ...f,
         nom: (f.nom || f.raison_sociale || '').trim().toUpperCase(),
@@ -125,6 +136,8 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
         surface_m2: nombreOuNull(f.surface_m2),
         nb_etals: nombreOuNull(f.nb_etals),
         nb_personnes: nombreOuNull(f.nb_personnes),
+        nb_etages: f.type_habitat === 'Immeuble' ? nombreOuNull(f.nb_etages) : null,
+        dernier_paiement_montant: nombreOuNull(f.dernier_paiement_montant),
         complements: { ...(f.complements || {}), ...(sigle ? { [sigle]: complementsTypes } : {}) },
       };
       const nouvelId = await enregistrerContribuable(saisie, { serviceId: config?.service?.id, photoModifiee });
@@ -140,7 +153,9 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
 
   const quartiers = (config?.quartiers || []).map((q) => q.nom);
   const valeurTexte = (v) => (v === null || v === undefined ? '' : String(v));
+  const taxesService = (config?.taches || []).map((t) => ({ valeur: t.id, libelle: t.libelle }));
 
+  // Rubriques dans l'ordre de la « Fiche de collecte indiquée par le service de collecte »
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Ecran>
@@ -148,16 +163,14 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
         <Carte style={{ gap: 12 }}>
           <Choix options={TYPES} valeur={f.type_contribuable} onChange={maj('type_contribuable')} />
           <Champ libelle="Nom" obligatoire autoCapitalize="characters" value={valeurTexte(f.nom)} onChangeText={maj('nom')} />
-          <Champ libelle="Prénoms" value={valeurTexte(f.prenoms)} onChangeText={maj('prenoms')} />
+          <Champ libelle="Prénom(s)" value={valeurTexte(f.prenoms)} onChangeText={maj('prenoms')} />
           {f.type_contribuable !== 'PERSONNE_PHYSIQUE' && (
             <Champ libelle="Raison sociale / nom commercial" value={valeurTexte(f.raison_sociale)} onChangeText={maj('raison_sociale')} />
           )}
           {f.type_contribuable === 'PERSONNE_PHYSIQUE' && <Choix libelle="Sexe" options={['Femme', 'Homme']} valeur={f.sexe} onChange={maj('sexe')} />}
-          <Champ libelle="Téléphone principal" keyboardType="phone-pad" value={valeurTexte(f.telephone)} onChangeText={maj('telephone')} />
+          <Champ libelle="Numéro de téléphone" keyboardType="phone-pad" value={valeurTexte(f.telephone)} onChangeText={maj('telephone')} />
           <Champ libelle="Téléphone secondaire" keyboardType="phone-pad" value={valeurTexte(f.telephone2)} onChangeText={maj('telephone2')} />
-          <Choix libelle="Pièce présentée" options={PIECES} valeur={f.piece_type} onChange={maj('piece_type')} />
-          {f.piece_type && f.piece_type !== 'Aucune' && <Champ libelle="Numéro de la pièce" value={valeurTexte(f.piece_numero)} onChangeText={maj('piece_numero')} />}
-          <Choix libelle="Statut de l'activité" options={STATUTS} valeur={f.statut_fiscal} onChange={maj('statut_fiscal')} />
+          <Choix libelle="Activité : formelle ou informelle (F / NF)" options={STATUTS} valeur={f.statut_fiscal} onChange={maj('statut_fiscal')} />
           {f.statut_fiscal === 'FORMEL' && (
             <>
               <Champ libelle="NIF" value={valeurTexte(f.nif)} onChangeText={maj('nif')} />
@@ -170,11 +183,17 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
         <Carte style={{ gap: 12 }}>
           <Choix libelle="Type de site" options={SITES} valeur={f.type_site} onChange={maj('type_site')} />
           <Choix libelle="Quartier" obligatoire options={quartiers} valeur={f.quartier} onChange={maj('quartier')} />
-          <Champ libelle="Secteur / district" value={valeurTexte(f.secteur)} onChangeText={maj('secteur')} />
-          <Champ libelle="Rue / avenue" value={valeurTexte(f.rue)} onChangeText={maj('rue')} />
-          <Champ libelle="N° de porte / concession" value={valeurTexte(f.numero_porte)} onChangeText={maj('numero_porte')} />
           <Champ libelle="Marché (si applicable)" value={valeurTexte(f.nom_marche)} onChangeText={maj('nom_marche')} />
-          <Champ libelle="N° de boutique, table ou étal" value={valeurTexte(f.numero_etal)} onChangeText={maj('numero_etal')} />
+          <Champ libelle="Secteur" value={valeurTexte(f.secteur)} onChangeText={maj('secteur')} />
+          <Champ libelle="Rue / emprise" value={valeurTexte(f.rue)} onChangeText={maj('rue')} />
+          <Choix libelle="Occupe une emprise de la localité ?" options={OUI_NON} valeur={f.sur_emprise} onChange={maj('sur_emprise')} />
+          <Text style={[styles.texteDoux, { marginTop: -6 }]}>Emprise : surface appartenant à la localité, occupée temporairement par un contribuable.</Text>
+          <Champ libelle="N° de concession" value={valeurTexte(f.numero_porte)} onChangeText={maj('numero_porte')} />
+          <Champ libelle="N° de boutique / magasin / kiosque / étal" value={valeurTexte(f.numero_etal)} onChangeText={maj('numero_etal')} />
+          <Choix libelle="Type d'habitat" options={HABITATS} valeur={f.type_habitat} onChange={maj('type_habitat')} />
+          {f.type_habitat === 'Immeuble' && (
+            <Champ libelle="Nombre d'étages" keyboardType="number-pad" value={valeurTexte(f.nb_etages)} onChangeText={maj('nb_etages')} />
+          )}
           <Champ libelle="Repères physiques" multiline value={valeurTexte(f.repere)} onChangeText={maj('repere')} />
           <View style={{ gap: 6 }}>
             <Bouton titre={f.latitude ? 'Reprendre la position GPS' : 'Capturer la position GPS'} icone="locate-outline"
@@ -194,6 +213,28 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
           <Champ libelle="Surface occupée (m²)" keyboardType="decimal-pad" value={valeurTexte(f.surface_m2)} onChangeText={maj('surface_m2')} />
           <Champ libelle="Nombre de tables / étals" keyboardType="number-pad" value={valeurTexte(f.nb_etals)} onChangeText={maj('nb_etals')} />
           <Champ libelle="Personnes travaillant sur le site" keyboardType="number-pad" value={valeurTexte(f.nb_personnes)} onChangeText={maj('nb_personnes')} />
+          {taxesService.length > 0 ? (
+            <ChoixMultiple libelle={`Taxes et redevances concernées (${config.service.sigle})`} options={taxesService}
+              valeurs={complement.taxes_applicables || []} onChange={(v) => setComplement((x) => ({ ...x, taxes_applicables: v }))}
+              aide="Seules les taxes cochées seront proposées à l'encaissement pour ce contribuable." />
+          ) : (
+            <Text style={styles.texteDoux}>Aucune taxe n'est encore paramétrée pour votre service : la liste des taxes apparaîtra ici.</Text>
+          )}
+        </Carte>
+
+        <TitreSection>Bien et documents</TitreSection>
+        <Carte style={{ gap: 12 }}>
+          <Choix libelle="Type de bien" options={TYPES_BIEN} valeur={f.type_bien} onChange={maj('type_bien')} />
+          <Choix libelle="Usage principal du bien" options={USAGES_BIEN} valeur={f.usage_bien} onChange={maj('usage_bien')} />
+          <Choix libelle="Documents fonciers" options={DOCUMENTS_FONCIERS} valeur={f.documents_fonciers} onChange={maj('documents_fonciers')} />
+          <Choix libelle="Lien entre le répondant et le bien" options={LIENS_BIEN} valeur={f.lien_repondant_bien} onChange={maj('lien_repondant_bien')} />
+        </Carte>
+
+        <TitreSection>Paiements et suivi</TitreSection>
+        <Carte style={{ gap: 12 }}>
+          <Text style={styles.texteDoux}>Dernier paiement déclaré par le contribuable (avant l'application).</Text>
+          <Champ libelle="Date ou période du dernier paiement" placeholder="ex. 03/2026" value={valeurTexte(f.dernier_paiement_date)} onChangeText={maj('dernier_paiement_date')} />
+          <Champ libelle="Montant du dernier paiement (GNF)" keyboardType="number-pad" value={valeurTexte(f.dernier_paiement_montant)} onChangeText={maj('dernier_paiement_montant')} />
         </Carte>
 
         {champsService.length > 0 && (
@@ -211,11 +252,18 @@ export default function FormulaireContribuableEcran({ navigation, route }) {
           </>
         )}
 
-        <TitreSection>Photo</TitreSection>
-        <Carte style={{ gap: 12, alignItems: 'center' }}>
-          {f.photo ? <Image source={{ uri: `data:image/jpeg;base64,${f.photo}` }} style={{ width: 180, height: 180, borderRadius: 8 }} />
-            : <Text style={styles.texteDoux}>Photo du contribuable ou de son site d'activité</Text>}
-          <Bouton titre={f.photo ? 'Reprendre la photo' : 'Prendre une photo'} icone="camera-outline" variante="secondaire" onPress={prendrePhoto} style={{ alignSelf: 'stretch' }} />
+        <TitreSection>Pièces, consentement et contrôle qualité</TitreSection>
+        <Carte style={{ gap: 12 }}>
+          <Choix libelle="Pièce présentée" options={PIECES} valeur={f.piece_type} onChange={maj('piece_type')} />
+          {f.piece_type && f.piece_type !== 'Aucune' && <Champ libelle="Numéro de la pièce" value={valeurTexte(f.piece_numero)} onChangeText={maj('piece_numero')} />}
+          <View style={{ alignItems: 'center', gap: 10 }}>
+            {f.photo ? <Image source={{ uri: `data:image/jpeg;base64,${f.photo}` }} style={{ width: 180, height: 180, borderRadius: 8 }} />
+              : <Text style={styles.texteDoux}>Photo du contribuable, de son site ou de sa pièce</Text>}
+            <Bouton titre={f.photo ? 'Reprendre la photo' : 'Prendre une photo'} icone="camera-outline" variante="secondaire" onPress={prendrePhoto} style={{ alignSelf: 'stretch' }} />
+          </View>
+          <Choix libelle="Le contribuable consent à l'enregistrement de ses informations" obligatoire options={OUI_NON} valeur={f.consentement} onChange={maj('consentement')} />
+          <Choix libelle="Contrôle qualité" options={CONTROLES} valeur={f.controle_qualite} onChange={maj('controle_qualite')} />
+          <Champ libelle="Observations de l'agent" multiline value={valeurTexte(f.observations)} onChangeText={maj('observations')} />
         </Carte>
 
         <Message texte={erreur} type="erreur" />

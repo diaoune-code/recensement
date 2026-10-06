@@ -72,6 +72,29 @@ export function Choix({ libelle, options, valeur, onChange, obligatoire }) {
   );
 }
 
+// Choix multiple (cases à cocher en pastilles) : `valeurs` est un tableau
+export function ChoixMultiple({ libelle, options, valeurs = [], onChange, aide }) {
+  const basculer = (v) => onChange(valeurs.includes(v) ? valeurs.filter((x) => x !== v) : [...valeurs, v]);
+  return (
+    <View style={{ gap: 6 }}>
+      {libelle && <Text style={st.libelle}>{libelle}</Text>}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {options.map((o) => {
+          const actif = valeurs.includes(o.valeur);
+          return (
+            <Pressable key={o.valeur} onPress={() => basculer(o.valeur)}
+              style={[st.pastille, { flexDirection: 'row', alignItems: 'center', gap: 6 }, actif && { backgroundColor: couleurs.primaire, borderColor: couleurs.primaire }]}>
+              <Ionicons name={actif ? 'checkbox' : 'square-outline'} size={16} color={actif ? '#fff' : couleurs.texteDoux} />
+              <Text style={{ color: actif ? '#fff' : couleurs.texte, fontSize: 14, flexShrink: 1 }}>{o.libelle}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      {aide && <Text style={s.texteDoux}>{aide}</Text>}
+    </View>
+  );
+}
+
 export function Badge({ texte, type = 'neutre' }) {
   const c = {
     neutre: [couleurs.fond, couleurs.texteDoux], succes: [couleurs.succesClair, couleurs.succes],

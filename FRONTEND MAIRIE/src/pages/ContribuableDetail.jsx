@@ -8,20 +8,37 @@ import { date, dateHeure, gnf, MODES_PAIEMENT, nomComplet } from '../format.js';
 const LIBELLES = {
   type_contribuable: 'Type', sexe: 'Sexe', date_naissance: 'Date de naissance', nationalite: 'Nationalité',
   piece_type: 'Pièce présentée', piece_numero: 'N° de pièce', telephone: 'Téléphone', telephone2: 'Téléphone secondaire',
-  email: 'E-mail', statut_fiscal: 'Statut fiscal', nif: 'NIF', rccm: 'RCCM',
-  type_site: 'Type de site', quartier: 'Quartier', secteur: 'Secteur', rue: 'Rue', numero_porte: 'N° porte / concession',
-  nom_marche: 'Marché', numero_etal: 'N° étal', repere: 'Repères',
+  email: 'E-mail', statut_fiscal: 'Activité formelle / informelle', nif: 'NIF', rccm: 'RCCM',
+  type_site: 'Type de site', quartier: 'Quartier', secteur: 'Secteur', rue: 'Rue / emprise', sur_emprise: 'Occupe une emprise',
+  numero_porte: 'N° de concession', nom_marche: 'Marché', numero_etal: 'N° boutique / magasin / kiosque', repere: 'Repères',
+  type_habitat: 'Type d\'habitat', nb_etages: 'Nombre d\'étages',
   activite_principale: 'Activité principale', description_activite: 'Description', forme_point: 'Forme du point',
   occupation: 'Occupation', surface_m2: 'Surface (m²)', nb_etals: 'Nombre d\'étals', nb_personnes: 'Personnes sur le site',
+  type_bien: 'Type de bien', usage_bien: 'Usage principal du bien', documents_fonciers: 'Documents fonciers',
+  lien_repondant_bien: 'Lien entre le répondant et le bien',
+  dernier_paiement_date: 'Dernier paiement déclaré (date)', dernier_paiement_montant: 'Dernier paiement déclaré (montant)',
+  consentement: 'Consentement', controle_qualite: 'Contrôle qualité', observations: 'Observations de l\'agent',
 };
 
+// Rubriques de la « Fiche de collecte indiquée par le service de collecte »
 const SECTIONS = [
-  { titre: 'Identification', cles: ['type_contribuable', 'sexe', 'date_naissance', 'nationalite', 'piece_type', 'piece_numero', 'telephone', 'telephone2', 'email', 'statut_fiscal', 'nif', 'rccm'] },
-  { titre: 'Localisation', cles: ['type_site', 'quartier', 'secteur', 'rue', 'numero_porte', 'nom_marche', 'numero_etal', 'repere'] },
+  { titre: 'Identification', cles: ['type_contribuable', 'sexe', 'date_naissance', 'nationalite', 'telephone', 'telephone2', 'email', 'statut_fiscal', 'nif', 'rccm'] },
+  { titre: 'Localisation', cles: ['type_site', 'quartier', 'nom_marche', 'secteur', 'rue', 'sur_emprise', 'numero_porte', 'numero_etal', 'type_habitat', 'nb_etages', 'repere'] },
   { titre: 'Activité économique', cles: ['activite_principale', 'description_activite', 'forme_point', 'occupation', 'surface_m2', 'nb_etals', 'nb_personnes'] },
+  { titre: 'Bien et documents', cles: ['type_bien', 'usage_bien', 'documents_fonciers', 'lien_repondant_bien'] },
+  { titre: 'Paiements et suivi', cles: ['dernier_paiement_date', 'dernier_paiement_montant'] },
+  { titre: 'Pièces, consentement et contrôle qualité', cles: ['piece_type', 'piece_numero', 'consentement', 'controle_qualite', 'observations'] },
 ];
 
-const valeur = (v) => (v === null || v === undefined || v === '' ? '—' : String(v).replace(/_/g, ' '));
+const LIBELLES_VALEURS = {
+  FORMEL: 'Formelle (F)', INFORMEL: 'Informelle (NF)', NON_VERIFIE: 'Non vérifié', OUI: 'Oui', NON: 'Non',
+  PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif, non vérifié',
+};
+const valeur = (v, cle) => {
+  if (v === null || v === undefined || v === '') return '—';
+  if (cle === 'dernier_paiement_montant') return gnf(v);
+  return LIBELLES_VALEURS[v] || String(v).replace(/_/g, ' ');
+};
 
 export default function ContribuableDetail() {
   const { id } = useParams();
@@ -57,7 +74,7 @@ export default function ContribuableDetail() {
                         <div className="gras" style={{ marginBottom: 8 }}>{s.titre}</div>
                         <div className="fiche">
                           {s.cles.map((k) => (
-                            <div key={k}><div className="cle">{LIBELLES[k]}</div><div className="valeur">{valeur(c[k])}</div></div>
+                            <div key={k}><div className="cle">{LIBELLES[k]}</div><div className="valeur">{valeur(c[k], k)}</div></div>
                           ))}
                         </div>
                       </div>
@@ -73,9 +90,14 @@ export default function ContribuableDetail() {
                       <div key={sigle}>
                         <Badge type="info">{sigle}</Badge>
                         <div className="fiche" style={{ marginTop: 8 }}>
-                          {Object.entries(champs).map(([k, v]) => (
+                          {Object.entries(champs).map(([k, v]) => (k === 'taxes_applicables' ? (
+                            <div key={k} style={{ gridColumn: '1 / -1' }}>
+                              <div className="cle">Taxes et redevances concernées</div>
+                              <div className="valeur">{(v || []).map((id) => c.noms_taches?.[id] || `Tâche ${id}`).join(' · ') || '—'}</div>
+                            </div>
+                          ) : (
                             <div key={k}><div className="cle">{k.replace(/_/g, ' ')}</div><div className="valeur">{valeur(v)}</div></div>
-                          ))}
+                          )))}
                         </div>
                       </div>
                     ))}

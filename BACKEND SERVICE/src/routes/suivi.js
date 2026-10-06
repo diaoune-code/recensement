@@ -79,7 +79,13 @@ router.get('/contribuables/:id', asynchrone(async (req, res) => {
     `SELECT p.id, p.numero_recu, p.montant, p.periode, p.mode_paiement, p.date_paiement, p.statut, t.libelle AS tache, u.identifiant AS agent
      FROM paiements p JOIN taches t ON t.id = p.tache_id JOIN utilisateurs u ON u.id = p.agent_id
      WHERE p.contribuable_id = $1 AND p.service_id = $2 ORDER BY p.date_paiement DESC`, [req.params.id, req.chef.service_id]);
-  res.json({ ...c, paiements });
+
+  // Noms des taxes cochées au recensement (complements[<sigle>].taxes_applicables contient des identifiants)
+  const ids = Object.values(c.complements || {}).flatMap((x) => x?.taxes_applicables || []).map(Number).filter(Number.isInteger);
+  const { rows: taches } = ids.length
+    ? await query('SELECT id, libelle FROM taches WHERE id = ANY($1::int[])', [ids])
+    : { rows: [] };
+  res.json({ ...c, paiements, noms_taches: Object.fromEntries(taches.map((t) => [t.id, t.libelle])) });
 }));
 
 // Encaissements du service

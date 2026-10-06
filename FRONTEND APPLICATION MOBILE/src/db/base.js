@@ -9,9 +9,12 @@ export const CHAMPS_CONTRIBUABLE = [
   'type_site', 'quartier', 'secteur', 'rue', 'numero_porte', 'nom_marche', 'numero_etal',
   'latitude', 'longitude', 'precision_gps', 'repere',
   'activite_principale', 'description_activite', 'forme_point', 'occupation', 'surface_m2', 'nb_etals', 'nb_personnes',
+  // Rubriques de la fiche de collecte du service de collecte
+  'sur_emprise', 'type_habitat', 'nb_etages', 'type_bien', 'usage_bien', 'documents_fonciers', 'lien_repondant_bien',
+  'dernier_paiement_date', 'dernier_paiement_montant', 'consentement', 'controle_qualite', 'observations',
 ];
 
-const NUMERIQUES = new Set(['latitude', 'longitude', 'precision_gps', 'surface_m2', 'nb_etals', 'nb_personnes']);
+const NUMERIQUES = new Set(['latitude', 'longitude', 'precision_gps', 'surface_m2', 'nb_etals', 'nb_personnes', 'nb_etages', 'dernier_paiement_montant']);
 
 const SCHEMA = `
 PRAGMA journal_mode = WAL;
@@ -71,6 +74,11 @@ export function base() {
     promesse = (async () => {
       const db = await SQLite.openDatabaseAsync('lambanyi_collecte.db');
       await db.execAsync(SCHEMA);
+      // Téléphones déjà installés : ajoute les colonnes apparues depuis (aucune donnée n'est perdue)
+      const existantes = new Set((await db.getAllAsync('PRAGMA table_info(contribuables)')).map((c) => c.name));
+      for (const c of CHAMPS_CONTRIBUABLE.filter((k) => !existantes.has(k))) {
+        await db.execAsync(`ALTER TABLE contribuables ADD COLUMN ${c} ${NUMERIQUES.has(c) ? 'REAL' : 'TEXT'}`);
+      }
       return db;
     })();
   }

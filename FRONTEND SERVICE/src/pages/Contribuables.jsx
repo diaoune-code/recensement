@@ -57,10 +57,22 @@ export default function Contribuables() {
 
 function FicheContribuable({ id, onFermer }) {
   const { donnees: c, chargement, erreur } = useApi(`/contribuables/${id}`);
+  const ouiNon = { OUI: 'Oui', NON: 'Non' };
+  // Rubriques de la « Fiche de collecte indiquée par le service de collecte »
   const lignes = c ? [
-    ['N°', c.numero], ['Téléphone', c.telephone], ['Type', c.type_contribuable?.replace(/_/g, ' ')], ['Pièce', c.piece_type && `${c.piece_type} ${c.piece_numero || ''}`],
-    ['Quartier', c.quartier], ['Secteur', c.secteur], ['Marché', c.nom_marche], ['N° étal', c.numero_etal], ['N° porte / concession', c.numero_porte],
+    ['N°', c.numero], ['Téléphone', c.telephone], ['Type', c.type_contribuable?.replace(/_/g, ' ')],
+    ['Activité F / NF', { FORMEL: 'Formelle (F)', INFORMEL: 'Informelle (NF)', NON_VERIFIE: 'Non vérifié' }[c.statut_fiscal]],
+    ['Quartier', c.quartier], ['Marché', c.nom_marche], ['Secteur', c.secteur],
+    ['Rue / emprise', [c.rue, c.sur_emprise === 'OUI' ? 'sur emprise' : null].filter(Boolean).join(' — ') || null],
+    ['N° de concession', c.numero_porte], ['N° boutique / magasin / kiosque', c.numero_etal],
+    ['Type d\'habitat', [c.type_habitat, c.nb_etages ? `${c.nb_etages} étage(s)` : null].filter(Boolean).join(' — ') || null],
     ['Activité', c.activite_principale], ['Forme du point', c.forme_point], ['Surface (m²)', c.surface_m2], ['Étals', c.nb_etals],
+    ['Type de bien', c.type_bien], ['Usage principal du bien', c.usage_bien], ['Documents fonciers', c.documents_fonciers],
+    ['Lien répondant / bien', c.lien_repondant_bien],
+    ['Dernier paiement déclaré', [c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null].filter(Boolean).join(' — ') || null],
+    ['Pièce', c.piece_type && `${c.piece_type} ${c.piece_numero || ''}`], ['Consentement', ouiNon[c.consentement]],
+    ['Contrôle qualité', { PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif, non vérifié' }[c.controle_qualite]],
+    ['Observations', c.observations],
     ['GPS', c.latitude && `${Number(c.latitude).toFixed(5)}, ${Number(c.longitude).toFixed(5)}`],
     ['Recensé par', `${c.agent} (${c.service_sigle}) le ${date(c.created_at)}`],
   ] : [];
@@ -79,7 +91,9 @@ function FicheContribuable({ id, onFermer }) {
               <div key={sigle}>
                 <Badge type="info">Compléments {sigle}</Badge>
                 <div className="fiche" style={{ marginTop: 8 }}>
-                  {Object.entries(champs).map(([k, v]) => <div key={k}><div className="cle">{k.replace(/_/g, ' ')}</div><div className="valeur">{String(v)}</div></div>)}
+                  {Object.entries(champs).map(([k, v]) => (k === 'taxes_applicables'
+                    ? <div key={k} style={{ gridColumn: '1 / -1' }}><div className="cle">Taxes et redevances concernées</div><div className="valeur">{(v || []).map((idTache) => c.noms_taches?.[idTache] || `Tâche ${idTache}`).join(' · ')}</div></div>
+                    : <div key={k}><div className="cle">{k.replace(/_/g, ' ')}</div><div className="valeur">{String(v)}</div></div>))}
                 </div>
               </div>
             ))}

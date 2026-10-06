@@ -63,7 +63,13 @@ router.get('/contribuables/:id', asynchrone(async (req, res) => {
      FROM paiements p JOIN taches t ON t.id = p.tache_id JOIN services s ON s.id = p.service_id
      JOIN utilisateurs u ON u.id = p.agent_id
      WHERE p.contribuable_id = $1 ORDER BY p.date_paiement DESC`, [req.params.id]);
-  res.json({ ...c, paiements });
+
+  // Noms des taxes cochées au recensement (complements[<sigle>].taxes_applicables contient des identifiants)
+  const ids = Object.values(c.complements || {}).flatMap((x) => x?.taxes_applicables || []).map(Number).filter(Number.isInteger);
+  const { rows: taches } = ids.length
+    ? await query('SELECT id, libelle FROM taches WHERE id = ANY($1::int[])', [ids])
+    : { rows: [] };
+  res.json({ ...c, paiements, noms_taches: Object.fromEntries(taches.map((t) => [t.id, t.libelle])) });
 }));
 
 // Carte : contribuables géolocalisés et couverture par quartier

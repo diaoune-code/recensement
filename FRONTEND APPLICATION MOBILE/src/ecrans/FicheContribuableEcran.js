@@ -37,7 +37,10 @@ export default function FicheContribuableEcran({ navigation, route }) {
   if (!c) return <Ecran><Text style={styles.texteDoux}>Chargement…</Text></Ecran>;
 
   const sigle = config?.service?.sigle;
-  const taches = config?.taches || [];
+  // Taxes concernées : celles cochées au recensement pour ce service, sinon toutes les taxes du service
+  const cochees = c.complements?.[sigle]?.taxes_applicables;
+  const toutesTaches = config?.taches || [];
+  const taches = cochees?.length ? toutesTaches.filter((t) => cochees.includes(t.id)) : toutesTaches;
   const valides = paiements.filter((p) => p.statut === 'VALIDE');
 
   // Situation de chaque taxe du service pour la période en cours
@@ -71,10 +74,18 @@ export default function FicheContribuableEcran({ navigation, route }) {
         <LigneInfo cle="Quartier" valeur={[c.quartier, c.secteur].filter(Boolean).join(' — ')} />
         <LigneInfo cle="Marché / étal" valeur={[c.nom_marche, c.numero_etal].filter(Boolean).join(' — ')} />
         <LigneInfo cle="Concession" valeur={c.numero_porte} />
-        <LigneInfo cle="Activité" valeur={c.activite_principale} />
+        <LigneInfo cle="Rue / emprise" valeur={[c.rue, c.sur_emprise === 'OUI' ? 'sur emprise' : null].filter(Boolean).join(' — ')} />
+        <LigneInfo cle="Type d'habitat" valeur={[c.type_habitat, c.nb_etages ? `${c.nb_etages} étage(s)` : null].filter(Boolean).join(' — ')} />
+        <LigneInfo cle="Activité" valeur={[c.activite_principale, { FORMEL: 'F', INFORMEL: 'NF' }[c.statut_fiscal]].filter(Boolean).join(' — ')} />
         <LigneInfo cle="Surface (m²)" valeur={c.surface_m2} />
         <LigneInfo cle="Étals" valeur={c.nb_etals} />
-        {Object.entries(c.complements?.[sigle] || {}).map(([k, v]) => {
+        <LigneInfo cle="Bien" valeur={[c.type_bien, c.usage_bien].filter(Boolean).join(' — ')} />
+        <LigneInfo cle="Documents fonciers" valeur={c.documents_fonciers} />
+        <LigneInfo cle="Lien avec le bien" valeur={c.lien_repondant_bien} />
+        <LigneInfo cle="Dernier paiement déclaré" valeur={[c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null].filter(Boolean).join(' — ')} />
+        <LigneInfo cle="Consentement" valeur={{ OUI: 'Oui', NON: 'Non' }[c.consentement]} />
+        <LigneInfo cle="Contrôle qualité" valeur={{ PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif' }[c.controle_qualite]} />
+        {Object.entries(c.complements?.[sigle] || {}).filter(([k]) => k !== 'taxes_applicables').map(([k, v]) => {
           const champ = config?.service?.champs?.find((x) => x.cle === k);
           return <LigneInfo key={k} cle={champ?.libelle || k} valeur={v} />;
         })}

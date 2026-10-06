@@ -149,6 +149,23 @@ CREATE TABLE IF NOT EXISTS contribuables (
     recu_le              TIMESTAMPTZ NOT NULL DEFAULT now()          -- dernière écriture côté serveur (sert à la synchro)
 );
 CREATE INDEX IF NOT EXISTS idx_contrib_recu_le   ON contribuables(recu_le);
+
+-- Rubriques de la « Fiche de collecte indiquée par le service de collecte » (séance de travail Mairie / PCT).
+-- Ajoutées par ALTER pour mettre à jour les bases existantes sans perte de données.
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS sur_emprise              VARCHAR(5);    -- OUI / NON : occupe une emprise de la localité
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS type_habitat             VARCHAR(40);   -- Villa, Immeuble…
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS nb_etages                INTEGER;       -- si immeuble à étages
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS type_bien                VARCHAR(60);
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS usage_bien               VARCHAR(60);
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS documents_fonciers       VARCHAR(80);
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS lien_repondant_bien      VARCHAR(60);
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS dernier_paiement_date    VARCHAR(20);   -- tel que déclaré (ex. 03/2026)
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS dernier_paiement_montant NUMERIC(14,0);
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS consentement             VARCHAR(5);    -- OUI / NON
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS controle_qualite         VARCHAR(40);   -- pièce vérifiée / déclaratif
+ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS observations             TEXT;
+-- La liste des taxes et redevances concernées est propre à chaque service :
+-- elle est rangée dans complements[<sigle du service>].taxes_applicables (identifiants des tâches).
 CREATE INDEX IF NOT EXISTS idx_contrib_telephone ON contribuables(telephone);
 CREATE INDEX IF NOT EXISTS idx_contrib_nom       ON contribuables(lower(nom));
 CREATE INDEX IF NOT EXISTS idx_contrib_quartier  ON contribuables(quartier);

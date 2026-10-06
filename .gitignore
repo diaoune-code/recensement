@@ -22,3 +22,9 @@ Thumbs.db
 
 # Documents internes de la commune : jamais publiés
 DOCS/
+
+# Présentations : captures avec données réelles de contribuables
+PRESENTATION/
+
+# Comptes rendus et documents de travail déposés à la racine
+/*.pdf

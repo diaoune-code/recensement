@@ -10,6 +10,9 @@ export const CHAMPS_CONTRIBUABLE = [
   'type_site', 'quartier', 'secteur', 'rue', 'numero_porte', 'nom_marche', 'numero_etal',
   'latitude', 'longitude', 'precision_gps', 'repere',
   'activite_principale', 'description_activite', 'forme_point', 'occupation', 'surface_m2', 'nb_etals', 'nb_personnes',
+  // Rubriques de la fiche de collecte du service de collecte
+  'sur_emprise', 'type_habitat', 'nb_etages', 'type_bien', 'usage_bien', 'documents_fonciers', 'lien_repondant_bien',
+  'dernier_paiement_date', 'dernier_paiement_montant', 'consentement', 'controle_qualite', 'observations',
 ];
 
 // Chaîne vide -> null, pour ne pas stocker de valeurs vides dans les colonnes typées.
