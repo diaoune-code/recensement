@@ -6,11 +6,12 @@ const router = Router();
 
 const MODES = ['FORFAIT', 'TARIF_BASE', 'BAREME'];
 const FREQUENCES = ['JOURNALIERE', 'MENSUELLE', 'ANNUELLE', 'UNIQUE'];
-const BASES_FICHE = ['surface_m2', 'nb_etals', 'nb_personnes'];
+// Seule donnée chiffrée de la fiche de collecte utilisable comme base d'un tarif : le nombre d'étages
+const BASES_FICHE = ['nb_etages'];
 
-// Contrôle la cohérence d'une tâche selon sa règle de calcul ; renvoie les valeurs à enregistrer.
-function validerTache(b, champsService) {
-  if (!b.libelle?.trim()) throw new ErreurMetier(400, 'Le libellé est obligatoire');
+// Contrôle la cohérence d'une taxe selon sa règle de calcul ; renvoie les valeurs à enregistrer.
+function validerTache(b) {
+  if (!b.libelle?.trim()) throw new ErreurMetier(400, 'Le nom de la taxe est obligatoire');
   if (!MODES.includes(b.mode_calcul)) throw new ErreurMetier(400, 'Règle de calcul invalide');
   if (!FREQUENCES.includes(b.frequence)) throw new ErreurMetier(400, 'Fréquence invalide');
   const t = {
@@ -22,12 +23,11 @@ function validerTache(b, champsService) {
     t.montant = Number(b.montant);
   } else if (b.mode_calcul === 'TARIF_BASE') {
     if (!(Number(b.tarif_unitaire) > 0)) throw new ErreurMetier(400, 'Le tarif unitaire doit être positif');
-    if (!b.base_libelle?.trim()) throw new ErreurMetier(400, 'Précisez l\'unité de la base (m², étal, engin…)');
+    if (!b.base_libelle?.trim()) throw new ErreurMetier(400, 'Précisez l\'unité de la base (m², étage, engin…)');
     t.tarif_unitaire = Number(b.tarif_unitaire);
     t.base_libelle = b.base_libelle.trim();
     if (b.base_champ) {
-      const champsNombre = champsService.filter((c) => c.type === 'nombre').map((c) => `c:${c.cle}`);
-      if (![...BASES_FICHE, ...champsNombre].includes(b.base_champ)) throw new ErreurMetier(400, 'Donnée de base inconnue');
+      if (!BASES_FICHE.includes(b.base_champ)) throw new ErreurMetier(400, 'Donnée de base inconnue');
       t.base_champ = b.base_champ;
     }
   } else {
@@ -45,13 +45,16 @@ async function champsDuService(serviceId) {
 }
 
 // ---------------------------------------------------------------------------
-// Tâches : chaque taxe ou redevance perçue par le service. Ces paramètres descendent vers le mobile.
+// Taxes (table « taches ») : chaque taxe ou redevance perçue par le service. Ces paramètres descendent vers le mobile.
+// Prévision = montant de la taxe × contribuables recensés qui doivent la payer (vue previsions_taxes).
 // ---------------------------------------------------------------------------
 router.get('/taches', asynchrone(async (req, res) => {
   const { rows } = await query(
-    `SELECT t.*, l.libelle AS ligne_libelle, l.prevision_2025,
+    `SELECT t.*, l.libelle AS ligne_libelle,
+            coalesce(v.nb_contribuables, 0) AS nb_contribuables, coalesce(v.prevision, 0) AS prevision,
             coalesce(p.montant,0) AS montant_collecte, coalesce(p.nb,0)::int AS nb_paiements
      FROM taches t LEFT JOIN lignes_recettes l ON l.code = t.ligne_code
+     LEFT JOIN previsions_taxes v ON v.taxe_id = t.id
      LEFT JOIN (SELECT tache_id, sum(montant) AS montant, count(*) AS nb FROM paiements
                 WHERE statut='VALIDE' AND date_paiement >= date_trunc('year', now()) GROUP BY 1) p ON p.tache_id = t.id
      WHERE t.service_id = $1 ORDER BY t.actif DESC, t.libelle`, [req.chef.service_id]);
@@ -59,26 +62,26 @@ router.get('/taches', asynchrone(async (req, res) => {
 }));
 
 router.post('/taches', asynchrone(async (req, res) => {
-  const t = validerTache(req.body || {}, await champsDuService(req.chef.service_id));
+  const t = validerTache(req.body || {});
   const { rows: [cree] } = await query(
     `INSERT INTO taches (service_id, ligne_code, libelle, mode_calcul, montant, tarif_unitaire, base_libelle, base_champ, bareme, frequence)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
     [req.chef.service_id, t.ligne_code, t.libelle, t.mode_calcul, t.montant, t.tarif_unitaire, t.base_libelle, t.base_champ,
       JSON.stringify(t.bareme), t.frequence]);
-  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: 'CREATION_TACHE', entite: 'tache', entiteId: String(cree.id), details: t });
+  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: 'CREATION_TAXE', entite: 'taxe', entiteId: String(cree.id), details: t });
   res.status(201).json(cree);
 }));
 
 router.put('/taches/:id', asynchrone(async (req, res) => {
-  const t = validerTache(req.body || {}, await champsDuService(req.chef.service_id));
+  const t = validerTache(req.body || {});
   const { rows: [maj] } = await query(
     `UPDATE taches SET ligne_code=$1, libelle=$2, mode_calcul=$3, montant=$4, tarif_unitaire=$5, base_libelle=$6, base_champ=$7,
             bareme=$8, frequence=$9, actif = coalesce($10, actif), updated_at = now()
      WHERE id = $11 AND service_id = $12 RETURNING *`,
     [t.ligne_code, t.libelle, t.mode_calcul, t.montant, t.tarif_unitaire, t.base_libelle, t.base_champ, JSON.stringify(t.bareme),
       t.frequence, req.body.actif ?? null, req.params.id, req.chef.service_id]);
-  if (!maj) return res.status(404).json({ message: 'Tâche introuvable dans ce service' });
-  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: 'MODIFICATION_TACHE', entite: 'tache', entiteId: String(maj.id), details: t });
+  if (!maj) return res.status(404).json({ message: 'Taxe introuvable dans ce service' });
+  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: 'MODIFICATION_TAXE', entite: 'taxe', entiteId: String(maj.id), details: t });
   res.json(maj);
 }));
 
@@ -86,8 +89,8 @@ router.patch('/taches/:id', asynchrone(async (req, res) => {
   const { rows: [maj] } = await query(
     'UPDATE taches SET actif = $1, updated_at = now() WHERE id = $2 AND service_id = $3 RETURNING *',
     [Boolean(req.body?.actif), req.params.id, req.chef.service_id]);
-  if (!maj) return res.status(404).json({ message: 'Tâche introuvable dans ce service' });
-  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: maj.actif ? 'ACTIVATION_TACHE' : 'DESACTIVATION_TACHE', entite: 'tache', entiteId: String(maj.id) });
+  if (!maj) return res.status(404).json({ message: 'Taxe introuvable dans ce service' });
+  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: maj.actif ? 'ACTIVATION_TAXE' : 'DESACTIVATION_TAXE', entite: 'taxe', entiteId: String(maj.id) });
   res.json(maj);
 }));
 

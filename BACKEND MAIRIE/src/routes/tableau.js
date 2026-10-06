@@ -23,7 +23,7 @@ router.get('/tableau-de-bord', asynchrone(async (req, res) => {
       `SELECT s.id, s.sigle, s.nom, s.actif,
               coalesce(pa.montant,0) AS montant, coalesce(pa.nb,0)::int AS nb_paiements,
               coalesce(co.nb,0)::int AS nb_recenses, coalesce(ag.nb,0)::int AS nb_agents,
-              coalesce(ta.nb,0)::int AS nb_taches
+              coalesce(ta.nb,0)::int AS nb_taxes
        FROM services s
        LEFT JOIN (SELECT service_id, sum(montant) AS montant, count(*) AS nb FROM paiements
                   WHERE statut='VALIDE' AND date_paiement BETWEEN $1 AND $2 GROUP BY 1) pa ON pa.service_id = s.id
@@ -65,36 +65,38 @@ router.get('/tableau-de-bord', asynchrone(async (req, res) => {
 // Prévu / collecté : écart entre les prévisions primitives du budget 2025 et les encaissements de l'année
 router.get('/prevu-collecte', asynchrone(async (req, res) => {
   const annee = Number(req.query.annee) || new Date().getFullYear();
-  const { rows: lignes } = await query(
-    `SELECT l.code, l.libelle, l.niveau, s.id AS service_id, s.sigle, s.nom AS service, l.service_indique,
-            coalesce(l.prevision_2025,0) AS prevision, coalesce(c.collecte,0) AS collecte,
-            (SELECT code || ' - ' || libelle FROM lignes_recettes WHERE code = left(l.code, 2)) AS chapitre
-     FROM lignes_recettes l
-     LEFT JOIN services s ON s.id = l.service_id
-     LEFT JOIN (SELECT t.ligne_code, sum(p.montant) AS collecte
-                FROM paiements p JOIN taches t ON t.id = p.tache_id
-                WHERE p.statut = 'VALIDE' AND extract(year FROM p.date_paiement) = $1
-                GROUP BY 1) c ON c.ligne_code = l.code
-     WHERE NOT EXISTS (SELECT 1 FROM lignes_recettes e WHERE e.parent_code = l.code)
-       AND l.niveau IN ('paragraphe','sous_paragraphe')
-     ORDER BY l.code`, [annee]);
+  // Prévision calculée (vue previsions_taxes) : montant de la taxe × contribuables recensés qui doivent la payer
+  const { rows: taxes } = await query(
+    `SELECT t.id, t.libelle, t.ligne_code, l.libelle AS ligne_libelle, t.frequence, t.mode_calcul, t.montant,
+            t.tarif_unitaire, t.base_libelle, t.bareme, t.actif, s.id AS service_id, s.sigle, s.nom AS service,
+            coalesce(v.nb_contribuables, 0) AS nb_contribuables, coalesce(v.prevision, 0) AS prevision,
+            coalesce(p.collecte, 0) AS collecte
+     FROM taches t
+     JOIN services s ON s.id = t.service_id
+     LEFT JOIN lignes_recettes l ON l.code = t.ligne_code
+     LEFT JOIN previsions_taxes v ON v.taxe_id = t.id
+     LEFT JOIN (SELECT tache_id, sum(montant) AS collecte FROM paiements
+                WHERE statut = 'VALIDE' AND extract(year FROM date_paiement) = $1 GROUP BY 1) p ON p.tache_id = t.id
+     WHERE t.actif OR p.collecte > 0
+     ORDER BY s.sigle, t.libelle`, [annee]);
 
   const parService = new Map();
-  for (const l of lignes) {
-    const cle = l.sigle || '—';
-    const s = parService.get(cle) || { sigle: l.sigle, service: l.service || 'Non attribué', prevision: 0, collecte: 0 };
-    s.prevision += l.prevision;
-    s.collecte += l.collecte;
-    parService.set(cle, s);
+  for (const t of taxes) {
+    const s = parService.get(t.sigle) || { sigle: t.sigle, service: t.service, nb_taxes: 0, nb_contribuables: 0, prevision: 0, collecte: 0 };
+    s.nb_taxes += 1;
+    s.nb_contribuables += t.nb_contribuables;
+    s.prevision += t.prevision;
+    s.collecte += t.collecte;
+    parService.set(t.sigle, s);
   }
-  const total = lignes.reduce((a, l) => ({ prevision: a.prevision + l.prevision, collecte: a.collecte + l.collecte }),
+  const total = taxes.reduce((a, t) => ({ prevision: a.prevision + t.prevision, collecte: a.collecte + t.collecte }),
     { prevision: 0, collecte: 0 });
 
   res.json({
     annee,
     total,
     par_service: [...parService.values()].sort((a, b) => b.prevision - a.prevision),
-    lignes,
+    taxes,
   });
 }));
 

@@ -43,7 +43,7 @@ export default function Encaissements() {
               <div className="defilement">
                 <table className="tableau">
                   <thead>
-                    <tr><th>Reçu</th><th>Encaissé le</th><th>Reçu au serveur</th><th>Agent</th><th>Contribuable</th><th>Tâche</th><th>Période</th><th>Mode</th><th className="num">Montant</th><th>Statut</th><th /></tr>
+                    <tr><th>Reçu</th><th>Encaissé le</th><th>Reçu au serveur</th><th>Agent</th><th>Contribuable</th><th>Taxe</th><th>Période</th><th>Mode</th><th className="num">Montant</th><th>Statut</th><th /></tr>
                   </thead>
                   <tbody>
                     {paiements.map((p) => (

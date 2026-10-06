@@ -11,8 +11,8 @@ export default function TableauDeBord() {
   const { donnees: d, chargement, erreur } = useApi(`/tableau-de-bord?du=${periode.du}&au=${periode.au}`);
   const navigate = useNavigate();
 
-  const actifs = d?.par_service.filter((s) => s.nb_taches > 0 || s.montant > 0) ?? [];
-  const inactifs = d?.par_service.filter((s) => s.nb_taches === 0 && s.montant === 0) ?? [];
+  const actifs = d?.par_service.filter((s) => s.nb_taxes > 0 || s.montant > 0) ?? [];
+  const inactifs = d?.par_service.filter((s) => s.nb_taxes === 0 && s.montant === 0) ?? [];
 
   return (
     <>
@@ -78,14 +78,14 @@ export default function TableauDeBord() {
                       <Bar dataKey="montant" name="Collecté" fill="#1d4e89" radius={[0, 4, 4, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
-                ) : <Vide>Aucun service n'a encore de tâche paramétrée.</Vide>}
+                ) : <Vide>Aucun service n'a encore de taxe paramétrée.</Vide>}
               </Panneau>
 
               <Panneau titre="Détail par service" sansMarge>
                 <div className="defilement">
                   <table className="tableau">
                     <thead>
-                      <tr><th>Service</th><th className="num">Agents</th><th className="num">Tâches</th><th className="num">Recensés</th>
+                      <tr><th>Service</th><th className="num">Agents</th><th className="num">Taxes</th><th className="num">Recensés</th>
                         <th className="num">Encaissements</th><th className="num">Montant</th><th>Part</th><th>Situation</th></tr>
                     </thead>
                     <tbody>
@@ -93,14 +93,14 @@ export default function TableauDeBord() {
                         const part = pourcentage(s.montant, d.totaux.montant);
                         let etat = <Badge type="succes">Actif</Badge>;
                         if (!s.actif) etat = <Badge>Désactivé</Badge>;
-                        else if (!s.nb_taches) etat = <Badge>Non démarré</Badge>;
+                        else if (!s.nb_taxes) etat = <Badge>Non démarré</Badge>;
                         else if (!s.nb_agents) etat = <Badge type="alerte">Sans agent</Badge>;
                         else if (!s.montant) etat = <Badge type="danger">Aucun encaissement</Badge>;
                         return (
                           <tr key={s.id} className="cliquable" onClick={() => navigate(`/contribuables?service_id=${s.id}`)}>
                             <td><span className="gras">{s.sigle}</span> — {s.nom}</td>
                             <td className="num">{s.nb_agents}</td>
-                            <td className="num">{s.nb_taches}</td>
+                            <td className="num">{s.nb_taxes}</td>
                             <td className="num">{entier(s.nb_recenses)}</td>
                             <td className="num">{entier(s.nb_paiements)}</td>
                             <td className="num">{gnf(s.montant)}</td>
@@ -117,7 +117,7 @@ export default function TableauDeBord() {
               <Panneau titre="Derniers encaissements reçus" sansMarge>
                 {d.derniers_paiements.length ? (
                   <table className="tableau">
-                    <thead><tr><th>Reçu</th><th>Date</th><th>Service</th><th>Tâche</th><th>Contribuable</th><th className="num">Montant</th></tr></thead>
+                    <thead><tr><th>Reçu</th><th>Date</th><th>Service</th><th>Taxe</th><th>Contribuable</th><th className="num">Montant</th></tr></thead>
                     <tbody>
                       {d.derniers_paiements.map((p) => (
                         <tr key={p.numero_recu}>

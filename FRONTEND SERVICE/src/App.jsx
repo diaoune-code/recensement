@@ -4,8 +4,7 @@ import Layout from './components/Layout.jsx';
 import Connexion from './pages/Connexion.jsx';
 import TableauDeBord from './pages/TableauDeBord.jsx';
 import Agents from './pages/Agents.jsx';
-import Taches from './pages/Taches.jsx';
-import Formulaire from './pages/Formulaire.jsx';
+import Taxes from './pages/Taxes.jsx';
 import Contribuables from './pages/Contribuables.jsx';
 import Encaissements from './pages/Encaissements.jsx';
 import Clotures from './pages/Clotures.jsx';
@@ -25,8 +24,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<TableauDeBord />} />
         <Route path="agents" element={<Agents />} />
-        <Route path="taches" element={<Taches />} />
-        <Route path="formulaire" element={<Formulaire />} />
+        <Route path="taxes" element={<Taxes />} />
         <Route path="contribuables" element={<Contribuables />} />
         <Route path="encaissements" element={<Encaissements />} />
         <Route path="clotures" element={<Clotures />} />

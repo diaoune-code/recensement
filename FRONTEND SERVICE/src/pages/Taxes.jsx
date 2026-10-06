@@ -3,9 +3,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { api, useApi } from '../api.js';
 import { Entete } from '../components/Layout.jsx';
 import { Badge, Champ, Erreur, Etat, Modal, Panneau, Vide } from '../components/Ui.jsx';
-import { FREQUENCES, gnf, MODES_CALCUL } from '../format.js';
-
-const BASES_FICHE = { surface_m2: 'Surface occupée (m²) de la fiche', nb_etals: 'Nombre d\'étals de la fiche', nb_personnes: 'Nombre de personnes sur le site' };
+import { entier, FREQUENCES, gnf, MODES_CALCUL } from '../format.js';
 
 export function regle(t) {
   if (t.mode_calcul === 'FORFAIT') return `${gnf(t.montant)} forfaitaire`;
@@ -13,8 +11,8 @@ export function regle(t) {
   return (t.bareme || []).map((b) => `${b.categorie} : ${gnf(b.montant)}`).join(' · ');
 }
 
-export default function Taches() {
-  const { donnees: taches, chargement, erreur, recharger } = useApi('/taches');
+export default function Taxes() {
+  const { donnees: taxes, chargement, erreur, recharger } = useApi('/taches');
   const [edition, setEdition] = useState(null);
   const [erreurAction, setErreurAction] = useState(null);
 
@@ -25,28 +23,37 @@ export default function Taches() {
     } catch (e) { setErreurAction(e.message); }
   }
 
+  const prevision = (taxes || []).filter((t) => t.actif).reduce((a, t) => a + t.prevision, 0);
+
   return (
     <>
-      <Entete titre="Tâches du service" sousTitre="Taxes et redevances perçues par le service. Ces paramètres descendent vers le mobile : l'agent voit directement le montant dû.">
-        <button className="btn primaire" onClick={() => setEdition({})}><Plus size={15} /> Nouvelle tâche</button>
+      <Entete titre="Taxes du service" sousTitre="Taxes et redevances perçues par le service. Ces paramètres descendent vers le mobile : l'agent voit directement le montant dû.">
+        <button className="btn primaire" onClick={() => setEdition({})}><Plus size={15} /> Nouvelle taxe</button>
       </Entete>
       <div className="contenu">
         <Erreur message={erreurAction} />
+        <div className="alerte-boite info">
+          Prévision du service : <strong>{gnf(prevision)}</strong>. Pour chaque taxe : montant × contribuables recensés pour qui l'agent a choisi
+          cette taxe dans « Liste des taxes et redevances ».
+        </div>
         <Panneau sansMarge>
-          <Etat chargement={chargement && !taches} erreur={erreur}>
-            {taches?.length ? (
+          <Etat chargement={chargement && !taxes} erreur={erreur}>
+            {taxes?.length ? (
               <div className="defilement">
                 <table className="tableau">
                   <thead>
-                    <tr><th>Code budgétaire</th><th>Libellé</th><th>Règle de calcul</th><th>Fréquence</th><th className="num">Collecté cette année</th><th>Statut</th><th /></tr>
+                    <tr><th>Code budgétaire</th><th>Taxe</th><th>Règle de calcul</th><th>Fréquence</th>
+                      <th className="num">Contribuables concernés</th><th className="num">Prévision</th><th className="num">Collecté cette année</th><th>Statut</th><th /></tr>
                   </thead>
                   <tbody>
-                    {taches.map((t) => (
+                    {taxes.map((t) => (
                       <tr key={t.id} style={t.actif ? undefined : { opacity: 0.6 }}>
                         <td><span className="mono">{t.ligne_code || '—'}</span>{t.ligne_libelle && <div className="petit texte-doux">{t.ligne_libelle}</div>}</td>
                         <td className="gras">{t.libelle}</td>
                         <td><Badge>{MODES_CALCUL[t.mode_calcul]}</Badge><div className="petit" style={{ marginTop: 4 }}>{regle(t)}</div></td>
                         <td>{FREQUENCES[t.frequence]}</td>
+                        <td className="num">{entier(t.nb_contribuables)}</td>
+                        <td className="num gras">{gnf(t.prevision)}</td>
                         <td className="num">{gnf(t.montant_collecte)}<div className="petit texte-doux">{t.nb_paiements} encaissement(s)</div></td>
                         <td>{t.actif ? <Badge type="succes">Active</Badge> : <Badge>Désactivée</Badge>}</td>
                         <td>
@@ -60,24 +67,23 @@ export default function Taches() {
                   </tbody>
                 </table>
               </div>
-            ) : <Vide>Aucune tâche. Créez la première taxe que vos agents percevront.</Vide>}
+            ) : <Vide>Aucune taxe. Créez la première taxe que vos agents percevront.</Vide>}
           </Etat>
         </Panneau>
       </div>
-      {edition && <ModalTache tache={edition} onFermer={() => setEdition(null)} onEnregistre={() => { setEdition(null); recharger(); }} />}
+      {edition && <ModalTaxe taxe={edition} onFermer={() => setEdition(null)} onEnregistre={() => { setEdition(null); recharger(); }} />}
     </>
   );
 }
 
-function ModalTache({ tache, onFermer, onEnregistre }) {
-  const nouvelle = !tache.id;
+function ModalTaxe({ taxe, onFermer, onEnregistre }) {
+  const nouvelle = !taxe.id;
   const { donnees: lignes } = useApi('/lignes-recettes');
-  const { donnees: champs } = useApi('/formulaire');
   const [f, setF] = useState({
-    libelle: tache.libelle || '', ligne_code: tache.ligne_code || '', mode_calcul: tache.mode_calcul || 'FORFAIT',
-    frequence: tache.frequence || 'JOURNALIERE', montant: tache.montant || '', tarif_unitaire: tache.tarif_unitaire || '',
-    base_libelle: tache.base_libelle || '', base_champ: tache.base_champ || '',
-    bareme: tache.bareme?.length ? tache.bareme : [{ categorie: '', montant: '' }],
+    libelle: taxe.libelle || '', ligne_code: taxe.ligne_code || '', mode_calcul: taxe.mode_calcul || 'FORFAIT',
+    frequence: taxe.frequence || 'JOURNALIERE', montant: taxe.montant || '', tarif_unitaire: taxe.tarif_unitaire || '',
+    base_libelle: taxe.base_libelle || '', base_champ: taxe.base_champ === 'nb_etages' ? 'nb_etages' : '',
+    bareme: taxe.bareme?.length ? taxe.bareme : [{ categorie: '', montant: '' }],
   });
   const [erreur, setErreur] = useState(null);
   const maj = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -92,22 +98,21 @@ function ModalTache({ tache, onFermer, onEnregistre }) {
     try {
       const corps = { ...f, bareme: f.bareme.filter((b) => b.categorie) };
       if (nouvelle) await api('/taches', { methode: 'POST', corps });
-      else await api(`/taches/${tache.id}`, { methode: 'PUT', corps });
+      else await api(`/taches/${taxe.id}`, { methode: 'PUT', corps });
       onEnregistre();
     } catch (e) { setErreur(e.message); }
   }
 
-  const champsNombre = (champs || []).filter((c) => c.type === 'nombre');
   const lignesService = lignes?.filter((l) => l.du_service) ?? [];
   const autresLignes = lignes?.filter((l) => !l.du_service) ?? [];
 
   let apercu = '';
-  if (f.mode_calcul === 'FORFAIT' && f.montant) apercu = `Chaque contribuable paie ${gnf(f.montant)}.`;
+  if (f.mode_calcul === 'FORFAIT' && f.montant) apercu = `Chaque contribuable concerné paie ${gnf(f.montant)}.`;
   if (f.mode_calcul === 'TARIF_BASE' && f.tarif_unitaire) apercu = `Exemple : 3 ${f.base_libelle || 'unités'} → ${gnf(3 * f.tarif_unitaire)}.`;
   if (f.mode_calcul === 'BAREME') apercu = 'L\'agent choisit la catégorie du contribuable ; le montant correspondant s\'affiche.';
 
   return (
-    <Modal large titre={nouvelle ? 'Nouvelle tâche' : `Modifier — ${tache.libelle}`} onFermer={onFermer}
+    <Modal large titre={nouvelle ? 'Nouvelle taxe' : `Modifier — ${taxe.libelle}`} onFermer={onFermer}
       pied={<><button className="btn" onClick={onFermer}>Annuler</button><button className="btn primaire" onClick={enregistrer}>Enregistrer</button></>}>
       <Erreur message={erreur} />
       <div className="formulaire" style={{ marginTop: erreur ? 12 : 0 }}>
@@ -122,7 +127,7 @@ function ModalTache({ tache, onFermer, onEnregistre }) {
             </optgroup>
           </select>
         </Champ>
-        <Champ libelle="Libellé affiché à l'agent et sur le reçu" pleine><input value={f.libelle} onChange={maj('libelle')} /></Champ>
+        <Champ libelle="Nom de la taxe (affiché à l'agent et sur le reçu)" pleine><input value={f.libelle} onChange={maj('libelle')} /></Champ>
         <Champ libelle="Règle de calcul">
           <select value={f.mode_calcul} onChange={maj('mode_calcul')}>
             {Object.entries(MODES_CALCUL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -141,12 +146,11 @@ function ModalTache({ tache, onFermer, onEnregistre }) {
         {f.mode_calcul === 'TARIF_BASE' && (
           <>
             <Champ libelle="Tarif unitaire (GNF)"><input type="number" min="0" value={f.tarif_unitaire} onChange={maj('tarif_unitaire')} /></Champ>
-            <Champ libelle="Unité de la base (m², étal, engin…)"><input value={f.base_libelle} onChange={maj('base_libelle')} /></Champ>
+            <Champ libelle="Unité de la base (m², étage, engin…)"><input value={f.base_libelle} onChange={maj('base_libelle')} /></Champ>
             <Champ libelle="Valeur de la base proposée à l'agent" pleine>
               <select value={f.base_champ} onChange={maj('base_champ')}>
                 <option value="">Saisie par l'agent à chaque encaissement</option>
-                {Object.entries(BASES_FICHE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-                {champsNombre.map((c) => <option key={c.cle} value={`c:${c.cle}`}>{c.libelle} (formulaire du service)</option>)}
+                <option value="nb_etages">Nombre d'étages de la fiche du contribuable</option>
               </select>
             </Champ>
           </>

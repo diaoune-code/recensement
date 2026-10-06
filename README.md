@@ -20,14 +20,16 @@ branchées sur **une base PostgreSQL unique**.
 | `BASE DE DONNEES` | Schéma SQL, import du classeur des lignes de recettes, comptes et données de démonstration |
 | `BACKEND APPLICATION MOBILE` | Connexion des agents, configuration du service, synchronisation hors ligne |
 | `BACKEND MAIRIE` | Tableau de bord consolidé, prévu/collecté, contribuables, carte, services, référentiel, contrôle |
-| `BACKEND SERVICE` | Agents, tâches (taxes), formulaire mobile, encaissements, clôtures de caisse |
+| `BACKEND SERVICE` | Agents, taxes, encaissements, clôtures de caisse |
 | `FRONTEND MAIRIE` / `FRONTEND SERVICE` | Interfaces web correspondantes |
 | `FRONTEND APPLICATION MOBILE` | Application des agents : espaces Recensement et Collecte |
 
 ## Comment les applications sont reliées
 
 - La **Mairie** crée les services et le compte de leur responsable.
-- Le **Service** inscrit ses agents, paramètre ses tâches (montant, tarif × base ou barème, fréquence)
+- Le formulaire de recensement reprend **uniquement** les champs de la « Fiche de collecte indiquée par le service de collecte ».
+- Les **prévisions** partent de zéro et se calculent : montant de chaque taxe × contribuables recensés qui doivent la payer.
+- Le **Service** inscrit ses agents, paramètre ses taxes (montant, tarif × base ou barème, fréquence)
   et les champs propres à son formulaire. Ces paramètres descendent sur le mobile à chaque synchronisation.
 - L'**agent** se connecte : l'application reconnaît son service et n'affiche que ses taxes. Il recense et
   encaisse ; chaque fiche et chaque paiement est rattaché automatiquement à son service.

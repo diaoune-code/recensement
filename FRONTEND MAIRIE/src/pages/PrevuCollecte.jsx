@@ -1,99 +1,95 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { Banknote, Target, TrendingUp, Users } from 'lucide-react';
 import { useApi } from '../api.js';
 import { Entete } from '../components/Layout.jsx';
-import { Badge, BarreProgression, CarteStat, Etat, Panneau } from '../components/Ui.jsx';
-import { gnf, pourcentage } from '../format.js';
-import { Banknote, Target, TrendingUp } from 'lucide-react';
+import { Badge, BarreProgression, CarteStat, Etat, Panneau, Vide } from '../components/Ui.jsx';
+import { entier, FREQUENCES, gnf, pourcentage } from '../format.js';
+
+// Montant unitaire d'une taxe, tel que paramétré par le service
+function montantTaxe(t) {
+  if (t.mode_calcul === 'FORFAIT') return gnf(t.montant);
+  if (t.mode_calcul === 'TARIF_BASE') return `${gnf(t.tarif_unitaire)} × ${t.base_libelle || 'base'}`;
+  const montants = (t.bareme || []).map((b) => Number(b.montant)).filter((m) => m > 0);
+  return montants.length ? `barème dès ${gnf(Math.min(...montants))}` : 'barème';
+}
 
 export default function PrevuCollecte() {
   const anneeCourante = new Date().getFullYear();
   const [annee, setAnnee] = useState(anneeCourante);
-  const [filtre, setFiltre] = useState('prevision');
   const { donnees: d, chargement, erreur } = useApi(`/prevu-collecte?annee=${annee}`);
-
-  // Lignes regroupées par chapitre budgétaire
-  const chapitres = useMemo(() => {
-    if (!d) return [];
-    const lignes = d.lignes.filter((l) => filtre === 'toutes' || l.prevision > 0 || l.collecte > 0);
-    const groupes = new Map();
-    for (const l of lignes) {
-      const g = groupes.get(l.chapitre) || { chapitre: l.chapitre, lignes: [], prevision: 0, collecte: 0 };
-      g.lignes.push(l);
-      g.prevision += l.prevision;
-      g.collecte += l.collecte;
-      groupes.set(l.chapitre, g);
-    }
-    return [...groupes.values()];
-  }, [d, filtre]);
+  const nbConcernes = d ? d.taxes.reduce((a, t) => a + t.nb_contribuables, 0) : 0;
 
   return (
     <>
-      <Entete titre="Prévu / collecté" sousTitre="Exécution budgétaire : prévisions primitives du budget 2025 face aux encaissements">
-        <div className="barre-filtres">
-          <select value={annee} onChange={(e) => setAnnee(Number(e.target.value))}>
-            {[anneeCourante, anneeCourante - 1].map((a) => <option key={a} value={a}>Encaissements {a}</option>)}
-          </select>
-          <select value={filtre} onChange={(e) => setFiltre(e.target.value)}>
-            <option value="prevision">Lignes prévues ou encaissées</option>
-            <option value="toutes">Toutes les lignes</option>
-          </select>
-        </div>
+      <Entete titre="Prévu / collecté" sousTitre="Prévision calculée à partir des taxes des services et des contribuables recensés qui doivent les payer">
+        <select value={annee} onChange={(e) => setAnnee(Number(e.target.value))}>
+          {[anneeCourante, anneeCourante - 1].map((a) => <option key={a} value={a}>Encaissements {a}</option>)}
+        </select>
       </Entete>
       <div className="contenu">
         <Etat chargement={chargement && !d} erreur={erreur}>
           {d && (
             <>
               <div className="grille-cartes">
-                <CarteStat icone={Target} libelle="Prévisions 2025" valeur={gnf(d.total.prevision)} />
-                <CarteStat icone={Banknote} libelle={`Collecté en ${d.annee} (via l'application)`} valeur={gnf(d.total.collecte)} couleur="#1f7a4d" />
+                <CarteStat icone={Target} libelle="Prévision" valeur={gnf(d.total.prevision)} detail="montant des taxes × contribuables concernés" />
+                <CarteStat icone={Users} libelle="Contribuables concernés" valeur={entier(nbConcernes)} detail="taxes cochées au recensement" couleur="#1d4e89" />
+                <CarteStat icone={Banknote} libelle={`Collecté en ${d.annee}`} valeur={gnf(d.total.collecte)} couleur="#1f7a4d" />
                 <CarteStat icone={TrendingUp} libelle="Taux de réalisation" valeur={`${pourcentage(d.total.collecte, d.total.prevision)} %`} couleur="#b26a00" />
               </div>
 
-              <Panneau titre="Par service" aide="Somme des lignes de recettes attribuées à chaque service" sansMarge>
-                <table className="tableau">
-                  <thead><tr><th>Service</th><th className="num">Prévu</th><th className="num">Collecté</th><th className="num">Écart</th><th style={{ width: 200 }}>Réalisation</th></tr></thead>
-                  <tbody>
-                    {d.par_service.filter((s) => s.prevision > 0 || s.collecte > 0).map((s) => {
-                      const taux = pourcentage(s.collecte, s.prevision);
-                      return (
-                        <tr key={s.sigle || 'na'}>
-                          <td>{s.sigle ? <><span className="gras">{s.sigle}</span> — {s.service}</> : <Badge type="alerte">{s.service}</Badge>}</td>
-                          <td className="num">{gnf(s.prevision)}</td>
-                          <td className="num">{gnf(s.collecte)}</td>
-                          <td className="num" style={{ color: s.collecte - s.prevision < 0 ? 'var(--danger)' : 'var(--succes)' }}>{gnf(s.collecte - s.prevision)}</td>
-                          <td><div className="ligne"><div style={{ flex: 1 }}><BarreProgression valeur={taux} /></div><span className="petit">{taux}%</span></div></td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="alerte-boite info">
+                La prévision part de zéro. Elle augmente quand un service paramètre une taxe (montant) et que les agents
+                recensent des contribuables en cochant cette taxe : prévision = montant de la taxe × nombre de contribuables concernés.
+                Pour un tarif × base, la base retenue est le nombre d'étages s'il sert de base, sinon 1 ; pour un barème, le plus petit montant.
+              </div>
+
+              <Panneau titre="Par service" sansMarge>
+                {d.par_service.length ? (
+                  <table className="tableau">
+                    <thead><tr><th>Service</th><th className="num">Taxes</th><th className="num">Contribuables concernés</th><th className="num">Prévision</th><th className="num">Collecté</th><th className="num">Écart</th><th style={{ width: 180 }}>Réalisation</th></tr></thead>
+                    <tbody>
+                      {d.par_service.map((s) => {
+                        const taux = pourcentage(s.collecte, s.prevision);
+                        return (
+                          <tr key={s.sigle}>
+                            <td><span className="gras">{s.sigle}</span> — {s.service}</td>
+                            <td className="num">{s.nb_taxes}</td>
+                            <td className="num">{entier(s.nb_contribuables)}</td>
+                            <td className="num">{gnf(s.prevision)}</td>
+                            <td className="num">{gnf(s.collecte)}</td>
+                            <td className="num" style={{ color: s.collecte - s.prevision < 0 ? 'var(--danger)' : 'var(--succes)' }}>{gnf(s.collecte - s.prevision)}</td>
+                            <td>{s.prevision > 0 ? <div className="ligne"><div style={{ flex: 1 }}><BarreProgression valeur={taux} /></div><span className="petit">{taux}%</span></div> : <span className="texte-doux petit">sans prévision</span>}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : <Vide>Aucune taxe n'est encore paramétrée par les services : la prévision est à zéro.</Vide>}
               </Panneau>
 
-              {chapitres.map((g) => (
-                <Panneau key={g.chapitre} titre={g.chapitre}
-                  aide={`Prévu ${gnf(g.prevision)} — collecté ${gnf(g.collecte)} (${pourcentage(g.collecte, g.prevision)} %)`} sansMarge>
+              <Panneau titre="Par taxe" aide="Chaque taxe paramétrée par un service, avec son code budgétaire" sansMarge>
+                {d.taxes.length ? (
                   <div className="defilement">
                     <table className="tableau">
-                      <thead><tr><th>Code</th><th>Libellé</th><th>Service</th><th className="num">Prévu 2025</th><th className="num">Collecté</th><th style={{ width: 160 }}>Réalisation</th></tr></thead>
+                      <thead><tr><th>Service</th><th>Code</th><th>Taxe</th><th>Montant</th><th>Fréquence</th><th className="num">Contribuables concernés</th><th className="num">Prévision</th><th className="num">Collecté</th></tr></thead>
                       <tbody>
-                        {g.lignes.map((l) => {
-                          const taux = pourcentage(l.collecte, l.prevision);
-                          return (
-                            <tr key={l.code}>
-                              <td className="mono">{l.code}</td>
-                              <td>{l.libelle}</td>
-                              <td>{l.sigle ? <Badge type="info">{l.sigle}</Badge> : <Badge type="alerte" >{l.service_indique || 'À attribuer'}</Badge>}</td>
-                              <td className="num">{gnf(l.prevision)}</td>
-                              <td className="num">{gnf(l.collecte)}</td>
-                              <td>{l.prevision > 0 ? <div className="ligne"><div style={{ flex: 1 }}><BarreProgression valeur={taux} /></div><span className="petit">{taux}%</span></div> : <span className="texte-doux petit">sans prévision</span>}</td>
-                            </tr>
-                          );
-                        })}
+                        {d.taxes.map((t) => (
+                          <tr key={t.id} style={t.actif ? undefined : { opacity: 0.6 }}>
+                            <td><Badge type="info">{t.sigle}</Badge></td>
+                            <td className="mono">{t.ligne_code || '—'}</td>
+                            <td>{t.libelle}{!t.actif && <> <Badge>désactivée</Badge></>}</td>
+                            <td>{montantTaxe(t)}</td>
+                            <td>{FREQUENCES[t.frequence]}</td>
+                            <td className="num">{entier(t.nb_contribuables)}</td>
+                            <td className="num gras">{gnf(t.prevision)}</td>
+                            <td className="num">{gnf(t.collecte)}</td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                </Panneau>
-              ))}
+                ) : <Vide>Aucune taxe.</Vide>}
+              </Panneau>
             </>
           )}
         </Etat>

@@ -97,7 +97,7 @@ async function recevoirPaiement(agent, p) {
 
   const { rows: [tache] } = await query('SELECT id, service_id, libelle FROM taches WHERE id = $1', [p.tache_id]);
   if (!tache || tache.service_id !== agent.service_id) {
-    return { id: p.id, statut: 'ERREUR', message: 'Tâche inconnue ou hors du service de l\'agent' };
+    return { id: p.id, statut: 'ERREUR', message: 'Taxe inconnue ou hors du service de l\'agent' };
   }
   const { rows: [contrib] } = await query('SELECT numero, nom, prenoms FROM contribuables WHERE id = $1', [p.contribuable_id]);
   if (!contrib) return { id: p.id, statut: 'EN_ATTENTE', message: 'Contribuable pas encore reçu' };

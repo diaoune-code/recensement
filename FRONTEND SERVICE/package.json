@@ -2,7 +2,7 @@
   "name": "lambanyi-frontend-service",
   "version": "1.0.0",
   "private": true,
-  "description": "Application web des services collecteurs : agents, tâches, formulaire mobile, suivi et clôtures de caisse",
+  "description": "Application web des services collecteurs : agents, taxes, suivi et clôtures de caisse",
   "type": "module",
   "scripts": {
     "dev": "vite",

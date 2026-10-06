@@ -1,36 +1,24 @@
 // Fiche du contribuable : identité, et ce qu'il doit au service de l'agent pour la période en cours
 import { useCallback, useState } from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSession } from '../contexte/Session';
-import { useSynchro } from '../contexte/Synchro';
-import { appel } from '../api/client';
-import { enregistrerPhotoTelechargee, lireContribuable, paiementsDuContribuable } from '../db/depots';
+import { lireContribuable, paiementsDuContribuable } from '../db/depots';
 import { Badge, BadgeSynchro, Bouton, Carte, Ecran, LigneInfo, Message, TitreSection } from '../composants/Ui';
 import { calculerMontant, dateHeure, descriptionTarif, gnf, libellePeriode, nomComplet, periodeCourante, valeurBase } from '../metier/calcul';
 import { couleurs, styles } from '../theme';
 
 export default function FicheContribuableEcran({ navigation, route }) {
   const { id, nouveau } = route.params;
-  const { config, jeton } = useSession();
-  const { serveurJoignable } = useSynchro();
+  const { config } = useSession();
   const [c, setC] = useState(null);
   const [paiements, setPaiements] = useState([]);
 
   const charger = useCallback(async () => {
-    const fiche = await lireContribuable(id);
-    setC(fiche);
+    setC(await lireContribuable(id));
     setPaiements(await paiementsDuContribuable(id));
-    // Photo prise par un autre agent : téléchargée à la demande quand le réseau est là
-    if (fiche?.a_photo && !fiche.photo && serveurJoignable) {
-      try {
-        const r = await appel(`/contribuables/${id}/photo`, { jeton, delai: 15000 });
-        await enregistrerPhotoTelechargee(id, r.image_base64);
-        setC({ ...fiche, photo: r.image_base64 });
-      } catch { /* sans réseau : pas de photo, ce n'est pas bloquant */ }
-    }
-  }, [id, jeton, serveurJoignable]);
+  }, [id]);
 
   useFocusEffect(useCallback(() => { charger(); }, [charger]));
 
@@ -57,39 +45,37 @@ export default function FicheContribuableEcran({ navigation, route }) {
     <Ecran>
       {nouveau && <Message type="succes" texte="Fiche enregistrée sur le téléphone. Elle sera transmise automatiquement." />}
 
-      <Carte style={{ gap: 10 }}>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          {c.photo
-            ? <Image source={{ uri: `data:image/jpeg;base64,${c.photo}` }} style={{ width: 72, height: 72, borderRadius: 8 }} />
-            : <View style={{ width: 72, height: 72, borderRadius: 8, backgroundColor: couleurs.fond, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="person" size={34} color={couleurs.bordure} /></View>}
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.titre}>{nomComplet(c)}</Text>
-            {c.raison_sociale ? <Text style={styles.texteDoux}>{c.raison_sociale}</Text> : null}
-            <Text style={styles.texteDoux}>{c.numero || 'Numéro attribué à la synchronisation'}</Text>
-            <BadgeSynchro etat={c.etat_synchro} />
-          </View>
+      {/* Uniquement les champs de la fiche de collecte du service de collecte */}
+      <Carte style={{ gap: 8 }}>
+        <View style={{ gap: 4 }}>
+          <Text style={styles.titre}>{nomComplet(c)}</Text>
+          <Text style={styles.texteDoux}>{c.numero || 'Numéro attribué à la synchronisation'}</Text>
+          <BadgeSynchro etat={c.etat_synchro} />
         </View>
         {c.etat_synchro === 'ERREUR' && <Message type="erreur" texte={`Refusé par le serveur : ${c.erreur_synchro}`} />}
-        <LigneInfo cle="Téléphone" valeur={c.telephone} />
-        <LigneInfo cle="Quartier" valeur={[c.quartier, c.secteur].filter(Boolean).join(' — ')} />
-        <LigneInfo cle="Marché / étal" valeur={[c.nom_marche, c.numero_etal].filter(Boolean).join(' — ')} />
-        <LigneInfo cle="Concession" valeur={c.numero_porte} />
-        <LigneInfo cle="Rue / emprise" valeur={[c.rue, c.sur_emprise === 'OUI' ? 'sur emprise' : null].filter(Boolean).join(' — ')} />
-        <LigneInfo cle="Type d'habitat" valeur={[c.type_habitat, c.nb_etages ? `${c.nb_etages} étage(s)` : null].filter(Boolean).join(' — ')} />
-        <LigneInfo cle="Activité" valeur={[c.activite_principale, { FORMEL: 'F', INFORMEL: 'NF' }[c.statut_fiscal]].filter(Boolean).join(' — ')} />
-        <LigneInfo cle="Surface (m²)" valeur={c.surface_m2} />
-        <LigneInfo cle="Étals" valeur={c.nb_etals} />
-        <LigneInfo cle="Bien" valeur={[c.type_bien, c.usage_bien].filter(Boolean).join(' — ')} />
+        <Text style={[styles.titreSection, { marginTop: 4 }]}>Identification et localisation</Text>
+        <LigneInfo cle="Quartier / Marché" valeur={[c.quartier, c.nom_marche].filter(Boolean).join(' — ')} />
+        <LigneInfo cle="Secteur" valeur={c.secteur} />
+        <LigneInfo cle="Rue / Emprise" valeur={c.rue} />
+        <LigneInfo cle="N° de concession / Boutique / Magasin / Kiosque" valeur={c.numero_porte} />
+        <LigneInfo cle="Type d'habitat" valeur={c.type_habitat} />
+        <LigneInfo cle="Nombre d'étages" valeur={c.nb_etages} />
+        <LigneInfo cle="Activité F / NF" valeur={{ FORMEL: 'Formelle (F)', INFORMEL: 'Informelle (NF)' }[c.statut_fiscal]} />
+        <LigneInfo cle="Numéro de téléphone" valeur={c.telephone} />
+        <LigneInfo cle="Activité" valeur={c.activite_principale} />
+        <LigneInfo cle="Taxes et redevances" valeur={(cochees || []).map((tid) => toutesTaches.find((t) => t.id === tid)?.libelle).filter(Boolean).join(' · ')} />
+        <Text style={[styles.titreSection, { marginTop: 6 }]}>Bien et documents</Text>
+        <LigneInfo cle="Type de bien" valeur={c.type_bien} />
+        <LigneInfo cle="Usage principal du bien" valeur={c.usage_bien} />
         <LigneInfo cle="Documents fonciers" valeur={c.documents_fonciers} />
-        <LigneInfo cle="Lien avec le bien" valeur={c.lien_repondant_bien} />
+        <LigneInfo cle="Lien répondant / bien" valeur={c.lien_repondant_bien} />
+        <Text style={[styles.titreSection, { marginTop: 6 }]}>Paiements et suivi</Text>
         <LigneInfo cle="Dernier paiement déclaré" valeur={[c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null].filter(Boolean).join(' — ')} />
+        <Text style={[styles.titreSection, { marginTop: 6 }]}>Pièces, consentement et contrôle qualité</Text>
+        <LigneInfo cle="Pièce" valeur={[c.piece_type, c.piece_numero].filter(Boolean).join(' — ')} />
         <LigneInfo cle="Consentement" valeur={{ OUI: 'Oui', NON: 'Non' }[c.consentement]} />
-        <LigneInfo cle="Contrôle qualité" valeur={{ PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif' }[c.controle_qualite]} />
-        {Object.entries(c.complements?.[sigle] || {}).filter(([k]) => k !== 'taxes_applicables').map(([k, v]) => {
-          const champ = config?.service?.champs?.find((x) => x.cle === k);
-          return <LigneInfo key={k} cle={champ?.libelle || k} valeur={v} />;
-        })}
-        <Bouton titre="Compléter / corriger la fiche" icone="create-outline" variante="secondaire"
+        <LigneInfo cle="Contrôle qualité" valeur={{ PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif, non vérifié' }[c.controle_qualite]} />
+        <Bouton titre="Compléter / corriger la fiche" icone="create-outline" variante="secondaire" style={{ marginTop: 6 }}
           onPress={() => navigation.navigate('Formulaire', { id: c.id })} />
       </Carte>
 
@@ -125,7 +111,7 @@ export default function FicheContribuableEcran({ navigation, route }) {
           <Pressable key={p.id} onPress={() => navigation.navigate('Recu', { id: p.id })} style={{ gap: 2, paddingVertical: 4 }}>
             <View style={styles.ligne}>
               <Text style={[styles.texte, { flex: 1, textDecorationLine: p.statut === 'ANNULE' ? 'line-through' : 'none' }]}>
-                {taches.find((t) => t.id === p.tache_id)?.libelle || `Tâche ${p.tache_id}`}
+                {taches.find((t) => t.id === p.tache_id)?.libelle || `Taxe ${p.tache_id}`}
               </Text>
               <Text style={[styles.texte, { fontWeight: '700' }]}>{gnf(p.montant)}</Text>
             </View>

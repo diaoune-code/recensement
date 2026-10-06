@@ -12,7 +12,7 @@ router.get('/services', asynchrone(async (_req, res) => {
   const { rows } = await query(
     `SELECT s.id, s.code, s.sigle, s.nom, s.actif,
             (SELECT count(*)::int FROM utilisateurs u WHERE u.service_id = s.id AND u.role='AGENT' AND u.actif) AS nb_agents,
-            (SELECT count(*)::int FROM taches t WHERE t.service_id = s.id AND t.actif) AS nb_taches,
+            (SELECT count(*)::int FROM taches t WHERE t.service_id = s.id AND t.actif) AS nb_taxes,
             (SELECT count(*)::int FROM lignes_recettes l WHERE l.service_id = s.id) AS nb_lignes,
             (SELECT json_agg(json_build_object('id', u.id, 'identifiant', u.identifiant, 'nom', u.nom, 'prenoms', u.prenoms,
                                                'telephone', u.telephone, 'fonction', u.fonction, 'actif', u.actif) ORDER BY u.nom)
@@ -71,13 +71,22 @@ router.patch('/responsables/:id', asynchrone(async (req, res) => {
 // ---------------------------------------------------------------------------
 router.get('/lignes-recettes', asynchrone(async (_req, res) => {
   const { rows } = await query(
-    `SELECT l.code, l.libelle, l.niveau, l.parent_code, l.service_id, l.service_indique, l.prevision_2025,
+    `SELECT l.code, l.libelle, l.niveau, l.parent_code, l.service_id, l.service_indique,
             s.sigle, s.nom AS service,
             NOT EXISTS (SELECT 1 FROM lignes_recettes e WHERE e.parent_code = l.code) AS feuille,
-            (SELECT count(*)::int FROM taches t WHERE t.ligne_code = l.code AND t.actif) AS nb_taches
+            (SELECT count(*)::int FROM taches t WHERE t.ligne_code = l.code AND t.actif) AS nb_taxes,
+            (SELECT coalesce(sum(v.prevision), 0) FROM previsions_taxes v WHERE v.ligne_code = l.code) AS prevision_propre
      FROM lignes_recettes l LEFT JOIN services s ON s.id = l.service_id
      ORDER BY l.code`);
-  res.json(rows);
+
+  // Prévision calculée d'une ligne = celle de ses propres taxes + celles de toutes ses sous-lignes (lien parent_code)
+  const enfants = new Map();
+  for (const l of rows) {
+    if (!enfants.has(l.parent_code)) enfants.set(l.parent_code, []);
+    enfants.get(l.parent_code).push(l);
+  }
+  const total = (l) => l.prevision_propre + (enfants.get(l.code) || []).reduce((a, e) => a + total(e), 0);
+  res.json(rows.map(({ prevision_propre: _, ...l }) => ({ ...l, prevision: total({ ...l, prevision_propre: _ }) })));
 }));
 
 // Modification d'une ligne : service attribué et/ou prévision.
@@ -95,24 +104,9 @@ router.put('/lignes-recettes/:code', asynchrone(async (req, res) => {
       await journaliser(db, { utilisateurId: req.utilisateur.id, serviceId, action: 'ATTRIBUTION_LIGNE', entite: 'ligne_recette', entiteId: avant.code });
     }
 
+    // Les prévisions ne se saisissent plus : elles sont calculées à partir des taxes (vue previsions_taxes)
     if ('prevision_2025' in corps) {
-      const { rows: [{ n }] } = await db.query('SELECT count(*)::int AS n FROM lignes_recettes WHERE parent_code = $1', [avant.code]);
-      if (n > 0) throw new ErreurMetier(400, 'La prévision de cette ligne est la somme de ses sous-lignes : modifiez les sous-lignes');
-      const valeur = corps.prevision_2025 === '' || corps.prevision_2025 === null ? 0 : Number(corps.prevision_2025);
-      if (!Number.isFinite(valeur) || valeur < 0) throw new ErreurMetier(400, 'Montant de prévision invalide');
-      await db.query('UPDATE lignes_recettes SET prevision_2025 = $1 WHERE code = $2', [Math.round(valeur), avant.code]);
-
-      // Recalcul des totaux des niveaux supérieurs (paragraphe, article, chapitre)
-      let parent = avant.parent_code;
-      while (parent) {
-        const { rows: [p] } = await db.query(
-          `UPDATE lignes_recettes SET prevision_2025 =
-             (SELECT coalesce(sum(prevision_2025), 0) FROM lignes_recettes WHERE parent_code = $1)
-           WHERE code = $1 RETURNING parent_code`, [parent]);
-        parent = p?.parent_code;
-      }
-      await journaliser(db, { utilisateurId: req.utilisateur.id, serviceId: avant.service_id, action: 'MODIFICATION_PREVISION', entite: 'ligne_recette', entiteId: avant.code,
-        details: { libelle: avant.libelle, ancienne: avant.prevision_2025, nouvelle: Math.round(valeur) } });
+      throw new ErreurMetier(400, 'La prévision est calculée automatiquement : montant de la taxe × contribuables recensés concernés');
     }
 
     const { rows } = await db.query('SELECT * FROM lignes_recettes WHERE code = $1', [avant.code]);

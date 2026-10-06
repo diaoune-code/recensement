@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { ClipboardList, FileCog, History, LayoutDashboard, ListChecks, LogOut, Receipt, UserCog, Users, Wallet } from 'lucide-react';
+import { ClipboardList, History, LayoutDashboard, ListChecks, LogOut, Receipt, UserCog, Users, Wallet } from 'lucide-react';
 import { useAuth } from '../auth.jsx';
 
 const liens = [
@@ -10,8 +10,7 @@ const liens = [
   { a: '/contribuables', libelle: 'Contribuables', icone: Users },
   { groupe: 'Paramétrage' },
   { a: '/agents', libelle: 'Agents', icone: UserCog },
-  { a: '/taches', libelle: 'Tâches (taxes)', icone: ListChecks },
-  { a: '/formulaire', libelle: 'Formulaire mobile', icone: FileCog },
+  { a: '/taxes', libelle: 'Taxes', icone: ListChecks },
   { groupe: 'Traçabilité' },
   { a: '/journal', libelle: 'Journal', icone: History },
 ];

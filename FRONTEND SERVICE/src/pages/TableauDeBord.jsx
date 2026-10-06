@@ -76,10 +76,10 @@ export default function TableauDeBord() {
                 </Panneau>
               </div>
 
-              <Panneau titre="Par tâche (taxe ou redevance)" sansMarge>
+              <Panneau titre="Par taxe" sansMarge>
                 {d.par_tache.length ? (
                   <table className="tableau">
-                    <thead><tr><th>Code</th><th>Tâche</th><th className="num">Encaissements</th><th className="num">Montant</th></tr></thead>
+                    <thead><tr><th>Code</th><th>Taxe</th><th className="num">Encaissements</th><th className="num">Montant</th></tr></thead>
                     <tbody>
                       {d.par_tache.map((t) => (
                         <tr key={t.libelle}><td className="mono">{t.ligne_code || '—'}</td><td>{t.libelle}</td><td className="num">{t.nb}</td><td className="num">{gnf(t.montant)}</td></tr>

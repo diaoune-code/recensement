@@ -165,7 +165,7 @@ ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS consentement             VARC
 ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS controle_qualite         VARCHAR(40);   -- pièce vérifiée / déclaratif
 ALTER TABLE contribuables ADD COLUMN IF NOT EXISTS observations             TEXT;
 -- La liste des taxes et redevances concernées est propre à chaque service :
--- elle est rangée dans complements[<sigle du service>].taxes_applicables (identifiants des tâches).
+-- elle est rangée dans complements[<sigle du service>].taxes_applicables (identifiants des taxes).
 CREATE INDEX IF NOT EXISTS idx_contrib_telephone ON contribuables(telephone);
 CREATE INDEX IF NOT EXISTS idx_contrib_nom       ON contribuables(lower(nom));
 CREATE INDEX IF NOT EXISTS idx_contrib_quartier  ON contribuables(quartier);
@@ -248,3 +248,26 @@ CREATE TABLE IF NOT EXISTS journal (
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_journal_date ON journal(created_at DESC);
+
+-- ---------------------------------------------------------------------
+-- Prévisions calculées (et non plus saisies) :
+-- prévision d'une taxe = montant de la taxe fixé par le service × contribuables recensés qui doivent la payer
+-- (ceux pour qui l'agent a coché la taxe au recensement).
+--   FORFAIT    : montant
+--   TARIF_BASE : tarif × nombre d'étages si la base est le nombre d'étages, sinon tarif × 1
+--   BAREME     : plus petit montant du barème (la catégorie n'est connue qu'à l'encaissement)
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE VIEW previsions_taxes AS
+SELECT t.id AS taxe_id, t.service_id, s.sigle, t.ligne_code, t.libelle, t.frequence, t.mode_calcul,
+       count(c.id)::int AS nb_contribuables,
+       coalesce(sum(
+         CASE WHEN c.id IS NULL THEN 0 ELSE CASE t.mode_calcul
+           WHEN 'FORFAIT' THEN t.montant
+           WHEN 'TARIF_BASE' THEN t.tarif_unitaire * CASE WHEN t.base_champ = 'nb_etages' THEN coalesce(c.nb_etages, 1) ELSE 1 END
+           ELSE (SELECT min((b->>'montant')::numeric) FROM jsonb_array_elements(t.bareme) b)
+         END END), 0)::numeric(16,0) AS prevision
+FROM taches t
+JOIN services s ON s.id = t.service_id
+LEFT JOIN contribuables c ON c.complements -> s.sigle -> 'taxes_applicables' @> to_jsonb(t.id)
+WHERE t.actif
+GROUP BY t.id, s.sigle;

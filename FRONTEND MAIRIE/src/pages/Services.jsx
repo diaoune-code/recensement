@@ -46,7 +46,7 @@ export default function Services() {
             <div className="defilement">
               <table className="tableau">
                 <thead>
-                  <tr><th>Code</th><th>Service</th><th className="num">Lignes</th><th className="num">Tâches</th><th className="num">Agents</th><th>Responsables (accès application Service)</th><th>Statut</th><th /></tr>
+                  <tr><th>Code</th><th>Service</th><th className="num">Lignes</th><th className="num">Taxes</th><th className="num">Agents</th><th>Responsables (accès application Service)</th><th>Statut</th><th /></tr>
                 </thead>
                 <tbody>
                   {services?.map((s) => (
@@ -54,7 +54,7 @@ export default function Services() {
                       <td className="mono">{s.code}</td>
                       <td><span className="gras">{s.sigle}</span> — {s.nom}</td>
                       <td className="num">{s.nb_lignes}</td>
-                      <td className="num">{s.nb_taches}</td>
+                      <td className="num">{s.nb_taxes}</td>
                       <td className="num">{s.nb_agents}</td>
                       <td>
                         {(s.responsables || []).map((r) => (
@@ -120,7 +120,7 @@ function ModalResponsable({ service, onFermer, onEnregistre }) {
     <Modal titre={`Responsable — ${service.nom}`} onFermer={onFermer}
       pied={<><button className="btn" onClick={onFermer}>Annuler</button><button className="btn primaire" onClick={enregistrer}>Créer le compte</button></>}>
       <div className="alerte-boite info" style={{ marginBottom: 14 }}>
-        Ce compte donne accès à l'application web Service : inscription des agents, paramétrage des tâches et clôtures de caisse.
+        Ce compte donne accès à l'application web Service : inscription des agents, paramétrage des taxes et clôtures de caisse.
       </div>
       <Erreur message={erreur} />
       <div className="formulaire" style={{ marginTop: 12 }}>

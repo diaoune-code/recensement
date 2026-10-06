@@ -59,7 +59,8 @@ async function chargerReferentiel(db) {
       `INSERT INTO lignes_recettes (code, libelle, niveau, parent_code, service_id, service_indique, prevision_2025)
        VALUES ($1,$2,$3,$4,(SELECT id FROM services WHERE code = $5),$6,$7)
        ON CONFLICT (code) DO NOTHING`,
-      [l.code, l.libelle, l.niveau, l.parent_code, l.service_code, l.service_indique, l.prevision_2025]);
+      // Prévision à zéro : elle est calculée à partir des taxes et des contribuables recensés (vue previsions_taxes)
+      [l.code, l.libelle, l.niveau, l.parent_code, l.service_code, l.service_indique, 0]);
   }
 
   // Seul compte créé d'office : l'administrateur Mairie, qui crée ensuite les responsables de service

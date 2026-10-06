@@ -62,7 +62,7 @@ function VerifierRecu() {
           </div>
           <div className="fiche" style={{ marginTop: 16 }}>
             {[
-              ['N° de reçu', r.numero_recu], ['Montant', gnf(r.montant)], ['Tâche', `${r.tache} (${r.ligne_code})`],
+              ['N° de reçu', r.numero_recu], ['Montant', gnf(r.montant)], ['Taxe', `${r.tache} (${r.ligne_code})`],
               ['Service', `${r.sigle} — ${r.service}`], ['Période', r.periode], ['Mode', MODES_PAIEMENT[r.mode_paiement]],
               ['Encaissé le', dateHeure(r.date_paiement)], ['Reçu au serveur', dateHeure(r.recu_le)], ['Agent', `${r.agent} — ${r.agent_nom}`],
               ['Contribuable', `${r.contribuable_numero} — ${r.contribuable}`],

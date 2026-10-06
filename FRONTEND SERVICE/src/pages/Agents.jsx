@@ -98,7 +98,7 @@ function ModalAgent({ agent, sigle, onFermer, onEnregistre }) {
       <Modal titre="Agent inscrit" onFermer={onEnregistre} pied={<button className="btn primaire" onClick={onEnregistre}>Terminer</button>}>
         <div className="alerte-boite info">
           Communiquez ces informations à l'agent. Il se connecte avec elles dans l'application mobile ; le téléphone reconnaît
-          automatiquement son service et charge vos tâches.
+          automatiquement son service et charge vos taxes.
         </div>
         <div className="fiche" style={{ marginTop: 16 }}>
           <div><div className="cle">Identifiant</div><div className="valeur mono" style={{ fontSize: 18 }}>{cree.identifiant}</div></div>

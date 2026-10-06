@@ -57,51 +57,36 @@ export default function Contribuables() {
 
 function FicheContribuable({ id, onFermer }) {
   const { donnees: c, chargement, erreur } = useApi(`/contribuables/${id}`);
-  const ouiNon = { OUI: 'Oui', NON: 'Non' };
-  // Rubriques de la « Fiche de collecte indiquée par le service de collecte »
+  const libelles = { FORMEL: 'Formelle (F)', INFORMEL: 'Informelle (NF)', NON_VERIFIE: 'Non vérifié', OUI: 'Oui', NON: 'Non', PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif, non vérifié' };
+  const joindre = (...v) => v.filter((x) => x !== null && x !== undefined && x !== '').join(' — ') || null;
+  // Uniquement les champs de la « Fiche de collecte indiquée par le service de collecte », dans son ordre
   const lignes = c ? [
-    ['N°', c.numero], ['Téléphone', c.telephone], ['Type', c.type_contribuable?.replace(/_/g, ' ')],
-    ['Activité F / NF', { FORMEL: 'Formelle (F)', INFORMEL: 'Informelle (NF)', NON_VERIFIE: 'Non vérifié' }[c.statut_fiscal]],
-    ['Quartier', c.quartier], ['Marché', c.nom_marche], ['Secteur', c.secteur],
-    ['Rue / emprise', [c.rue, c.sur_emprise === 'OUI' ? 'sur emprise' : null].filter(Boolean).join(' — ') || null],
-    ['N° de concession', c.numero_porte], ['N° boutique / magasin / kiosque', c.numero_etal],
-    ['Type d\'habitat', [c.type_habitat, c.nb_etages ? `${c.nb_etages} étage(s)` : null].filter(Boolean).join(' — ') || null],
-    ['Activité', c.activite_principale], ['Surface (m²)', c.surface_m2], ['Étals', c.nb_etals],
+    ['Nom', c.nom], ['Prénom', c.prenoms], ['Quartier / Marché', joindre(c.quartier, c.nom_marche)], ['Secteur', c.secteur],
+    ['Rue / Emprise', c.rue], ['N° de concession / Boutique / Magasin / Kiosque', c.numero_porte],
+    ['Type d\'habitat', c.type_habitat], ['Nombre d\'étages', c.nb_etages],
+    ['Activité : formelle ou informelle (F / NF)', libelles[c.statut_fiscal]], ['Numéro de téléphone', c.telephone],
+    ['Activité', c.activite_principale],
+    ['Liste des taxes et redevances', Object.values(c.complements || {}).flatMap((x) => x?.taxes_applicables || [])
+      .map((idTaxe) => c.noms_taches?.[idTaxe] || `Taxe ${idTaxe}`).join(' · ') || null],
     ['Type de bien', c.type_bien], ['Usage principal du bien', c.usage_bien], ['Documents fonciers', c.documents_fonciers],
-    ['Lien répondant / bien', c.lien_repondant_bien],
-    ['Dernier paiement déclaré', [c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null].filter(Boolean).join(' — ') || null],
-    ['Pièce', c.piece_type && `${c.piece_type} ${c.piece_numero || ''}`], ['Consentement', ouiNon[c.consentement]],
-    ['Contrôle qualité', { PIECE_VERIFIEE: 'Pièce vérifiée', DECLARATIF: 'Déclaratif, non vérifié' }[c.controle_qualite]],
-    ['Observations', c.observations],
-    ['GPS', c.latitude && `${Number(c.latitude).toFixed(5)}, ${Number(c.longitude).toFixed(5)}`],
-    ['Recensé par', `${c.agent} (${c.service_sigle}) le ${date(c.created_at)}`],
+    ['Lien entre le répondant et le bien', c.lien_repondant_bien],
+    ['Dernier paiement déclaré', joindre(c.dernier_paiement_date, c.dernier_paiement_montant ? gnf(c.dernier_paiement_montant) : null)],
+    ['Pièce', joindre(c.piece_type, c.piece_numero)], ['Consentement', libelles[c.consentement]], ['Contrôle qualité', libelles[c.controle_qualite]],
   ] : [];
   return (
     <Modal large titre={c ? nomComplet(c) : 'Contribuable'} onFermer={onFermer}>
       <Etat chargement={chargement} erreur={erreur}>
         {c && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div className="ligne" style={{ alignItems: 'flex-start', gap: 20 }}>
-              {c.photo && <img className="photo-contribuable" src={`data:image/jpeg;base64,${c.photo}`} alt="" />}
-              <div className="fiche" style={{ flex: 1 }}>
-                {lignes.map(([k, v]) => <div key={k}><div className="cle">{k}</div><div className="valeur">{v ?? '—'}</div></div>)}
-              </div>
+            <div className="petit texte-doux">{c.numero} · recensé par {c.agent} ({c.service_sigle}) le {date(c.created_at)}</div>
+            <div className="fiche">
+              {lignes.map(([k, v]) => <div key={k}><div className="cle">{k}</div><div className="valeur">{v ?? '—'}</div></div>)}
             </div>
-            {Object.entries(c.complements || {}).map(([sigle, champs]) => (
-              <div key={sigle}>
-                <Badge type="info">Compléments {sigle}</Badge>
-                <div className="fiche" style={{ marginTop: 8 }}>
-                  {Object.entries(champs).map(([k, v]) => (k === 'taxes_applicables'
-                    ? <div key={k} style={{ gridColumn: '1 / -1' }}><div className="cle">Taxes et redevances concernées</div><div className="valeur">{(v || []).map((idTache) => c.noms_taches?.[idTache] || `Tâche ${idTache}`).join(' · ')}</div></div>
-                    : <div key={k}><div className="cle">{k.replace(/_/g, ' ')}</div><div className="valeur">{String(v)}</div></div>))}
-                </div>
-              </div>
-            ))}
             <div>
               <div className="gras" style={{ marginBottom: 8 }}>Paiements au service</div>
               {c.paiements.length ? (
                 <table className="tableau">
-                  <thead><tr><th>Reçu</th><th>Date</th><th>Tâche</th><th>Période</th><th>Agent</th><th className="num">Montant</th></tr></thead>
+                  <thead><tr><th>Reçu</th><th>Date</th><th>Taxe</th><th>Période</th><th>Agent</th><th className="num">Montant</th></tr></thead>
                   <tbody>
                     {c.paiements.map((p) => (
                       <tr key={p.id} style={p.statut === 'ANNULE' ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pencil, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { api, useApi } from '../api.js';
 import { Entete } from '../components/Layout.jsx';
 import { Badge, Erreur, Etat, Panneau } from '../components/Ui.jsx';
@@ -51,7 +51,7 @@ function Lignes() {
         </div>
       )}
       <Erreur message={erreurAction} />
-      <Panneau titre="Lignes de recettes" aide="Issues du classeur « Services concernés par ligne de recettes ». Cliquez sur une prévision pour la modifier : les totaux des chapitres et articles se recalculent." sansMarge
+      <Panneau titre="Lignes de recettes" aide="Prévision calculée automatiquement : montant de chaque taxe du service × contribuables recensés qui doivent la payer." sansMarge
         actions={(
           <select value={filtre} onChange={(e) => setFiltre(e.target.value)}>
             <option value="">Toutes les lignes</option>
@@ -62,7 +62,7 @@ function Lignes() {
         <Etat chargement={chargement && !lignes} erreur={erreur}>
           <div className="defilement">
             <table className="tableau">
-              <thead><tr><th>Code</th><th>Libellé</th><th className="num">Prévision 2025</th><th>Service indiqué (classeur)</th><th>Service attribué</th><th className="num">Tâches</th></tr></thead>
+              <thead><tr><th>Code</th><th>Libellé</th><th className="num">Prévision calculée</th><th>Service indiqué (classeur)</th><th>Service attribué</th><th className="num">Taxes</th></tr></thead>
               <tbody>
                 {visibles.map((l) => {
                   const titre = l.niveau === 'chapitre' || l.niveau === 'article';
@@ -70,11 +70,7 @@ function Lignes() {
                     <tr key={l.code} style={titre ? { background: '#f8f9fb' } : undefined}>
                       <td className="mono">{l.code}</td>
                       <td style={{ paddingLeft: 14 + INDENT[l.niveau], fontWeight: titre ? 600 : 400 }}>{l.libelle}</td>
-                      <td className="num">
-                        {l.feuille
-                          ? <ChampPrevision ligne={l} onEnregistre={recharger} onErreur={setErreurAction} />
-                          : <span className={titre ? 'gras' : ''} title="Somme des sous-lignes">{l.prevision_2025 ? gnf(l.prevision_2025) : '—'}</span>}
-                      </td>
+                      <td className={`num ${titre ? 'gras' : ''}`}>{gnf(l.prevision)}</td>
                       <td className="petit texte-doux">{l.service_indique || ''}</td>
                       <td>
                         {!titre && (
@@ -84,7 +80,7 @@ function Lignes() {
                           </select>
                         )}
                       </td>
-                      <td className="num">{l.nb_taches > 0 ? <Badge type="succes">{l.nb_taches}</Badge> : ''}</td>
+                      <td className="num">{l.nb_taxes > 0 ? <Badge type="succes">{l.nb_taxes}</Badge> : ''}</td>
                     </tr>
                   );
                 })}
@@ -94,56 +90,6 @@ function Lignes() {
         </Etat>
       </Panneau>
     </>
-  );
-}
-
-// Prévision modifiable d'une ligne de détail : affichée formatée, éditée en chiffres.
-// Enregistrée avec Entrée ou en quittant le champ ; Échap annule.
-function ChampPrevision({ ligne, onEnregistre, onErreur }) {
-  const [edition, setEdition] = useState(false);
-  const [valeur, setValeur] = useState('');
-  const [envoi, setEnvoi] = useState(false);
-
-  function ouvrir() {
-    setValeur(ligne.prevision_2025 ? String(ligne.prevision_2025) : '');
-    setEdition(true);
-  }
-
-  async function enregistrer() {
-    const nombre = valeur === '' ? 0 : Number(valeur);
-    if (nombre === Number(ligne.prevision_2025 || 0)) { setEdition(false); return; }
-    setEnvoi(true);
-    try {
-      await api(`/lignes-recettes/${ligne.code}`, { methode: 'PUT', corps: { prevision_2025: nombre } });
-      onErreur(null);
-      setEdition(false);
-      onEnregistre();
-    } catch (e) {
-      onErreur(`${ligne.code} : ${e.message}`);
-    } finally {
-      setEnvoi(false);
-    }
-  }
-
-  if (!edition) {
-    return (
-      <button className="btn petit" style={{ minWidth: 150, justifyContent: 'flex-end' }} onClick={ouvrir} title="Modifier la prévision">
-        {ligne.prevision_2025 ? gnf(ligne.prevision_2025) : '—'} <Pencil size={12} />
-      </button>
-    );
-  }
-  return (
-    <input
-      type="number" min="0" step="1000" autoFocus disabled={envoi}
-      style={{ width: 170, textAlign: 'right' }}
-      value={valeur}
-      onChange={(e) => setValeur(e.target.value)}
-      onBlur={enregistrer}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-        if (e.key === 'Escape') setEdition(false);
-      }}
-    />
   );
 }
 
