@@ -4,25 +4,7 @@ import { asynchrone } from '../outils.js';
 
 const router = Router();
 
-// Vérification d'un reçu (numéro saisi ou lu dans le QR code du reçu)
-router.get('/recus/:numero', asynchrone(async (req, res) => {
-  // Le QR code contient « LAMBANYI|<numéro>|<montant>|<date> » : on accepte aussi ce format.
-  const numero = decodeURIComponent(req.params.numero).split('|').length > 1
-    ? decodeURIComponent(req.params.numero).split('|')[1]
-    : decodeURIComponent(req.params.numero);
-  const { rows: [r] } = await query(
-    `SELECT p.numero_recu, p.montant, p.periode, p.mode_paiement, p.date_paiement, p.recu_le, p.statut,
-            p.base_valeur, p.categorie, t.libelle AS tache, t.ligne_code, s.sigle, s.nom AS service,
-            u.identifiant AS agent, u.nom || coalesce(' ' || u.prenoms, '') AS agent_nom,
-            c.id AS contribuable_id, c.numero AS contribuable_numero, c.nom || coalesce(' ' || c.prenoms, '') AS contribuable,
-            cl.statut AS cloture_statut, cl.jour AS cloture_jour
-     FROM paiements p JOIN taches t ON t.id = p.tache_id JOIN services s ON s.id = p.service_id
-     JOIN utilisateurs u ON u.id = p.agent_id JOIN contribuables c ON c.id = p.contribuable_id
-     LEFT JOIN clotures cl ON cl.id = p.cloture_id
-     WHERE upper(p.numero_recu) = upper($1)`, [numero.trim()]);
-  if (!r) return res.status(404).json({ message: `Aucun encaissement enregistré sous le numéro ${numero}` });
-  res.json(r);
-}));
+// La vérification des reçus se fait désormais dans l'application Service (BACKEND SERVICE, GET /api/recus/:numero)
 
 // Journal des actions : traçabilité et contrôle interne
 router.get('/journal', asynchrone(async (req, res) => {

@@ -1,17 +1,17 @@
 import { useState } from 'react';
-import { CheckCircle2, Search, XCircle } from 'lucide-react';
-import { api, useApi } from '../api.js';
+import { useApi } from '../api.js';
 import { Entete } from '../components/Layout.jsx';
 import { Badge, Erreur, Etat, Pagination, Panneau, Vide } from '../components/Ui.jsx';
-import { date, dateHeure, gnf, MODES_PAIEMENT } from '../format.js';
+import { date, dateHeure, gnf } from '../format.js';
 
-const ONGLETS = { recu: 'Vérifier un reçu', clotures: 'Clôtures de caisse', journal: 'Journal des actions', sms: 'Reçus SMS' };
+// La vérification des reçus est faite par chaque service (application Service)
+const ONGLETS = { clotures: 'Clôtures de caisse', journal: 'Journal des actions', sms: 'Reçus SMS' };
 
 export default function Controle() {
-  const [onglet, setOnglet] = useState('recu');
+  const [onglet, setOnglet] = useState('clotures');
   return (
     <>
-      <Entete titre="Contrôle interne" sousTitre="Vérification des encaissements, rapprochement des caisses et traçabilité">
+      <Entete titre="Contrôle interne" sousTitre="Rapprochement des caisses et traçabilité">
         <div className="barre-filtres">
           {Object.entries(ONGLETS).map(([k, v]) => (
             <button key={k} className={`btn ${onglet === k ? 'primaire' : ''}`} onClick={() => setOnglet(k)}>{v}</button>
@@ -19,59 +19,11 @@ export default function Controle() {
         </div>
       </Entete>
       <div className="contenu">
-        {onglet === 'recu' && <VerifierRecu />}
         {onglet === 'clotures' && <Clotures />}
         {onglet === 'journal' && <Journal />}
         {onglet === 'sms' && <Sms />}
       </div>
     </>
-  );
-}
-
-function VerifierRecu() {
-  const [numero, setNumero] = useState('');
-  const [resultat, setResultat] = useState(null);
-  const [erreur, setErreur] = useState(null);
-
-  async function verifier(e) {
-    e.preventDefault();
-    setResultat(null);
-    setErreur(null);
-    try {
-      setResultat(await api(`/recus/${encodeURIComponent(numero.trim())}`));
-    } catch (err) { setErreur(err.message); }
-  }
-
-  const r = resultat;
-  return (
-    <Panneau titre="Vérifier un reçu" aide="Saisissez le numéro imprimé sur le reçu ou le texte lu dans son QR code">
-      <form className="barre-filtres" onSubmit={verifier}>
-        <input type="search" style={{ minWidth: 380 }} placeholder="Ex. PF-001-20261001-0003" value={numero} onChange={(e) => setNumero(e.target.value)} required />
-        <button className="btn primaire"><Search size={15} /> Vérifier</button>
-      </form>
-      {erreur && (
-        <div className="alerte-boite erreur ligne" style={{ marginTop: 16 }}>
-          <XCircle size={18} /> Reçu non reconnu : {erreur}. Ce reçu n'a pas été transmis par l'application ou n'est pas authentique.
-        </div>
-      )}
-      {r && (
-        <div style={{ marginTop: 16 }}>
-          <div className={`alerte-boite ${r.statut === 'VALIDE' ? 'info' : 'erreur'} ligne`}>
-            {r.statut === 'VALIDE' ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-            {r.statut === 'VALIDE' ? 'Encaissement authentique, enregistré dans la base de la commune.' : 'Cet encaissement a été ANNULÉ par le service.'}
-          </div>
-          <div className="fiche" style={{ marginTop: 16 }}>
-            {[
-              ['N° de reçu', r.numero_recu], ['Montant', gnf(r.montant)], ['Taxe', `${r.tache} (${r.ligne_code})`],
-              ['Service', `${r.sigle} — ${r.service}`], ['Période', r.periode], ['Mode', MODES_PAIEMENT[r.mode_paiement]],
-              ['Encaissé le', dateHeure(r.date_paiement)], ['Reçu au serveur', dateHeure(r.recu_le)], ['Agent', `${r.agent} — ${r.agent_nom}`],
-              ['Contribuable', `${r.contribuable_numero} — ${r.contribuable}`],
-              ['Caisse', r.cloture_statut ? `Clôturée le ${date(r.cloture_jour)} (${r.cloture_statut === 'VALIDEE' ? 'validée' : 'écart signalé'})` : 'Pas encore clôturée'],
-            ].map(([k, v]) => <div key={k}><div className="cle">{k}</div><div className="valeur">{v}</div></div>)}
-          </div>
-        </div>
-      )}
-    </Panneau>
   );
 }
 

@@ -174,6 +174,30 @@ router.get('/clotures', asynchrone(async (req, res) => {
   res.json(rows);
 }));
 
+// Vérification d'un reçu (numéro saisi ou lu dans le QR code du reçu), limitée aux reçus du service
+router.get('/recus/:numero', asynchrone(async (req, res) => {
+  // Le QR code contient « LAMBANYI|<numéro>|<montant>|<date> » : on accepte aussi ce format.
+  const brut = decodeURIComponent(req.params.numero);
+  const numero = (brut.split('|').length > 1 ? brut.split('|')[1] : brut).trim();
+  const { rows: [r] } = await query(
+    `SELECT p.numero_recu, p.montant, p.periode, p.mode_paiement, p.date_paiement, p.recu_le, p.statut, p.service_id,
+            p.base_valeur, p.categorie, t.libelle AS tache, t.ligne_code, s.sigle, s.nom AS service,
+            u.identifiant AS agent, u.nom || coalesce(' ' || u.prenoms, '') AS agent_nom,
+            c.id AS contribuable_id, c.numero AS contribuable_numero, c.nom || coalesce(' ' || c.prenoms, '') AS contribuable,
+            cl.statut AS cloture_statut, cl.jour AS cloture_jour
+     FROM paiements p JOIN taches t ON t.id = p.tache_id JOIN services s ON s.id = p.service_id
+     JOIN utilisateurs u ON u.id = p.agent_id JOIN contribuables c ON c.id = p.contribuable_id
+     LEFT JOIN clotures cl ON cl.id = p.cloture_id
+     WHERE upper(p.numero_recu) = upper($1)`, [numero]);
+  if (!r) return res.status(404).json({ message: `Aucun encaissement enregistré sous le numéro ${numero}` });
+  if (r.service_id !== req.chef.service_id) {
+    return res.status(403).json({ message: `Ce reçu existe mais appartient au service ${r.sigle} — ${r.service} : il doit être vérifié par ce service` });
+  }
+  await journaliser({ query }, { utilisateurId: req.chef.id, serviceId: req.chef.service_id, action: 'VERIFICATION_RECU', entite: 'recu', entiteId: r.numero_recu });
+  const { service_id: _, ...recu } = r;
+  res.json(recu);
+}));
+
 // Journal des actions du service
 router.get('/journal', asynchrone(async (req, res) => {
   const { rows } = await query(

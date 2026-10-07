@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { ClipboardList, History, LayoutDashboard, ListChecks, LogOut, Receipt, UserCog, Users, Wallet } from 'lucide-react';
+import { ClipboardList, History, LayoutDashboard, ListChecks, LogOut, Receipt, ScanSearch, UserCog, Users, Wallet } from 'lucide-react';
 import { useAuth } from '../auth.jsx';
 
 const liens = [
@@ -7,6 +7,7 @@ const liens = [
   { a: '/', libelle: 'Tableau de bord', icone: LayoutDashboard, exact: true },
   { a: '/encaissements', libelle: 'Encaissements', icone: Receipt },
   { a: '/clotures', libelle: 'Clôtures de caisse', icone: Wallet },
+  { a: '/verifier-recu', libelle: 'Vérifier un reçu', icone: ScanSearch },
   { a: '/contribuables', libelle: 'Contribuables', icone: Users },
   { groupe: 'Paramétrage' },
   { a: '/agents', libelle: 'Agents', icone: UserCog },

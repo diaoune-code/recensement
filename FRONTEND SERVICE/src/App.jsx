@@ -5,6 +5,7 @@ import Connexion from './pages/Connexion.jsx';
 import TableauDeBord from './pages/TableauDeBord.jsx';
 import Agents from './pages/Agents.jsx';
 import Taxes from './pages/Taxes.jsx';
+import VerifierRecu from './pages/VerifierRecu.jsx';
 import Contribuables from './pages/Contribuables.jsx';
 import Encaissements from './pages/Encaissements.jsx';
 import Clotures from './pages/Clotures.jsx';
@@ -25,6 +26,7 @@ export default function App() {
         <Route index element={<TableauDeBord />} />
         <Route path="agents" element={<Agents />} />
         <Route path="taxes" element={<Taxes />} />
+        <Route path="verifier-recu" element={<VerifierRecu />} />
         <Route path="contribuables" element={<Contribuables />} />
         <Route path="encaissements" element={<Encaissements />} />
         <Route path="clotures" element={<Clotures />} />
